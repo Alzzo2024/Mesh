@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { MeshWord } from "@/components/Logo";
 
 export const Route = createFileRoute("/")({
-  ssr: false,
   component: IndexRedirect,
 });
 
