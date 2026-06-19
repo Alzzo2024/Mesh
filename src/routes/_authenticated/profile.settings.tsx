@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, LogOut, Trash2, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, LOCALES, type Locale } from "@/lib/i18n";
-import { ArrowLeft, LogOut, Trash2 } from "lucide-react";
+import { Avatar } from "@/components/Avatar";
+import { SignedImage } from "@/components/SignedImage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/profile/settings")({
@@ -18,20 +20,38 @@ function SettingsPage() {
   const [bio, setBio] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [saving, setSaving] = useState(false);
+  const avatarRef = useRef<HTMLInputElement>(null);
+  const bannerRef = useRef<HTMLInputElement>(null);
+
+  async function load() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    setProfile(data);
+    setNickname(data?.nickname ?? "");
+    setBio(data?.bio ?? "");
+    setIsPrivate(!!data?.is_private);
+  }
 
   useEffect(() => {
-    (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      setProfile(data);
-      setNickname(data?.nickname ?? "");
-      setBio(data?.bio ?? "");
-      setIsPrivate(!!data?.is_private);
-    })();
+    load();
   }, []);
+
+  async function upload(bucket: "avatars" | "banners", file: File) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const path = `${user.id}/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+    if (error) return toast.error(error.message);
+    const value = `${bucket}/${path}`;
+    const patch = bucket === "avatars" ? { avatar_url: value } : { banner_url: value };
+    await supabase.from("profiles").update(patch).eq("id", user.id);
+    load();
+  }
 
   const nicknameChanged = profile && nickname !== profile.nickname;
   const daysSinceNick = profile
@@ -61,15 +81,13 @@ function SettingsPage() {
   }
 
   async function deleteAccount() {
-    if (!confirm("Eliminar conta? Esta ação é irreversível.")) return;
+    if (!confirm(t("settings.deleteAccountConfirm"))) return;
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-    // Cascade via profiles FK on auth.users.id wouldn't run; we delete profile rows (cascades posts/etc)
     await supabase.from("profiles").delete().eq("id", user.id);
     await supabase.auth.signOut();
-    toast.success("Conta eliminada");
     navigate({ to: "/auth", replace: true });
   }
 
@@ -83,6 +101,46 @@ function SettingsPage() {
         </Link>
         <h1 className="font-semibold">{t("settings.title")}</h1>
       </header>
+
+      <div className="relative h-32 bg-secondary">
+        {profile.banner_url && (
+          <SignedImage path={profile.banner_url} className="w-full h-full object-cover" />
+        )}
+        <button
+          onClick={() => bannerRef.current?.click()}
+          className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors"
+          aria-label={t("settings.changeBanner")}
+        >
+          <Camera className="h-6 w-6 text-white" />
+        </button>
+        <input
+          ref={bannerRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && upload("banners", e.target.files[0])}
+        />
+      </div>
+
+      <div className="px-4 -mt-10 relative">
+        <div className="relative w-20 h-20">
+          <Avatar url={profile.avatar_url} name={profile.nickname} size={80} className="ring-4 ring-background" />
+          <button
+            onClick={() => avatarRef.current?.click()}
+            className="absolute bottom-0 right-0 rounded-full bg-primary text-[#1a1a1a] p-1.5"
+            aria-label={t("settings.changePhoto")}
+          >
+            <Camera className="h-3 w-3" />
+          </button>
+          <input
+            ref={avatarRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && upload("avatars", e.target.files[0])}
+          />
+        </div>
+      </div>
 
       <div className="p-4 space-y-5">
         <Field label={t("settings.nickname")}>
@@ -138,7 +196,7 @@ function SettingsPage() {
         <button
           onClick={save}
           disabled={saving || nicknameLocked}
-          className="w-full rounded-xl bg-primary text-primary-foreground font-medium py-3 disabled:opacity-40"
+          className="w-full rounded-xl bg-primary text-[#1a1a1a] font-medium py-3 disabled:opacity-40"
         >
           {t("settings.save")}
         </button>
