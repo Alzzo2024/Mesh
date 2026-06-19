@@ -62,8 +62,12 @@ function ProfilePage() {
     const path = `${user.id}/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
     if (error) return toast.error(error.message);
-    const col = bucket === "avatars" ? "avatar_url" : "banner_url";
-    await supabase.from("profiles").update({ [col]: `${bucket}/${path}` }).eq("id", user.id);
+    const value = `${bucket}/${path}`;
+    if (bucket === "avatars") {
+      await supabase.from("profiles").update({ avatar_url: value }).eq("id", user.id);
+    } else {
+      await supabase.from("profiles").update({ banner_url: value }).eq("id", user.id);
+    }
     load();
   }
 
