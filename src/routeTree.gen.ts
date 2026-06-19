@@ -12,10 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations.index'
+import { Route as AuthenticatedUFixedIdRouteImport } from './routes/_authenticated/u.$fixedId'
 import { Route as AuthenticatedProfileSettingsRouteImport } from './routes/_authenticated/profile.settings'
+import { Route as AuthenticatedProfileFollowingRouteImport } from './routes/_authenticated/profile.following'
+import { Route as AuthenticatedProfileFollowersRouteImport } from './routes/_authenticated/profile.followers'
+import { Route as AuthenticatedHashtagTagRouteImport } from './routes/_authenticated/hashtag.$tag'
 import { Route as AuthenticatedConversationsIdRouteImport } from './routes/_authenticated/conversations.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -31,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
@@ -48,12 +58,34 @@ const AuthenticatedConversationsIndexRoute =
     path: '/conversations/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedUFixedIdRoute = AuthenticatedUFixedIdRouteImport.update({
+  id: '/u/$fixedId',
+  path: '/u/$fixedId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileSettingsRoute =
   AuthenticatedProfileSettingsRouteImport.update({
     id: '/settings',
     path: '/settings',
     getParentRoute: () => AuthenticatedProfileRoute,
   } as any)
+const AuthenticatedProfileFollowingRoute =
+  AuthenticatedProfileFollowingRouteImport.update({
+    id: '/following',
+    path: '/following',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedProfileFollowersRoute =
+  AuthenticatedProfileFollowersRouteImport.update({
+    id: '/followers',
+    path: '/followers',
+    getParentRoute: () => AuthenticatedProfileRoute,
+  } as any)
+const AuthenticatedHashtagTagRoute = AuthenticatedHashtagTagRouteImport.update({
+  id: '/hashtag/$tag',
+  path: '/hashtag/$tag',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedConversationsIdRoute =
   AuthenticatedConversationsIdRouteImport.update({
     id: '/conversations/$id',
@@ -66,8 +98,13 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
+  '/search': typeof AuthenticatedSearchRoute
   '/conversations/$id': typeof AuthenticatedConversationsIdRoute
+  '/hashtag/$tag': typeof AuthenticatedHashtagTagRoute
+  '/profile/followers': typeof AuthenticatedProfileFollowersRoute
+  '/profile/following': typeof AuthenticatedProfileFollowingRoute
   '/profile/settings': typeof AuthenticatedProfileSettingsRoute
+  '/u/$fixedId': typeof AuthenticatedUFixedIdRoute
   '/conversations/': typeof AuthenticatedConversationsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -75,8 +112,13 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
+  '/search': typeof AuthenticatedSearchRoute
   '/conversations/$id': typeof AuthenticatedConversationsIdRoute
+  '/hashtag/$tag': typeof AuthenticatedHashtagTagRoute
+  '/profile/followers': typeof AuthenticatedProfileFollowersRoute
+  '/profile/following': typeof AuthenticatedProfileFollowingRoute
   '/profile/settings': typeof AuthenticatedProfileSettingsRoute
+  '/u/$fixedId': typeof AuthenticatedUFixedIdRoute
   '/conversations': typeof AuthenticatedConversationsIndexRoute
 }
 export interface FileRoutesById {
@@ -86,8 +128,13 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
+  '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/conversations/$id': typeof AuthenticatedConversationsIdRoute
+  '/_authenticated/hashtag/$tag': typeof AuthenticatedHashtagTagRoute
+  '/_authenticated/profile/followers': typeof AuthenticatedProfileFollowersRoute
+  '/_authenticated/profile/following': typeof AuthenticatedProfileFollowingRoute
   '/_authenticated/profile/settings': typeof AuthenticatedProfileSettingsRoute
+  '/_authenticated/u/$fixedId': typeof AuthenticatedUFixedIdRoute
   '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
 }
 export interface FileRouteTypes {
@@ -97,8 +144,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/feed'
     | '/profile'
+    | '/search'
     | '/conversations/$id'
+    | '/hashtag/$tag'
+    | '/profile/followers'
+    | '/profile/following'
     | '/profile/settings'
+    | '/u/$fixedId'
     | '/conversations/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -106,8 +158,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/feed'
     | '/profile'
+    | '/search'
     | '/conversations/$id'
+    | '/hashtag/$tag'
+    | '/profile/followers'
+    | '/profile/following'
     | '/profile/settings'
+    | '/u/$fixedId'
     | '/conversations'
   id:
     | '__root__'
@@ -116,8 +173,13 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/feed'
     | '/_authenticated/profile'
+    | '/_authenticated/search'
     | '/_authenticated/conversations/$id'
+    | '/_authenticated/hashtag/$tag'
+    | '/_authenticated/profile/followers'
+    | '/_authenticated/profile/following'
     | '/_authenticated/profile/settings'
+    | '/_authenticated/u/$fixedId'
     | '/_authenticated/conversations/'
   fileRoutesById: FileRoutesById
 }
@@ -150,6 +212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/search': {
+      id: '/_authenticated/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof AuthenticatedSearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -171,12 +240,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConversationsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/u/$fixedId': {
+      id: '/_authenticated/u/$fixedId'
+      path: '/u/$fixedId'
+      fullPath: '/u/$fixedId'
+      preLoaderRoute: typeof AuthenticatedUFixedIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile/settings': {
       id: '/_authenticated/profile/settings'
       path: '/settings'
       fullPath: '/profile/settings'
       preLoaderRoute: typeof AuthenticatedProfileSettingsRouteImport
       parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/following': {
+      id: '/_authenticated/profile/following'
+      path: '/following'
+      fullPath: '/profile/following'
+      preLoaderRoute: typeof AuthenticatedProfileFollowingRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/profile/followers': {
+      id: '/_authenticated/profile/followers'
+      path: '/followers'
+      fullPath: '/profile/followers'
+      preLoaderRoute: typeof AuthenticatedProfileFollowersRouteImport
+      parentRoute: typeof AuthenticatedProfileRoute
+    }
+    '/_authenticated/hashtag/$tag': {
+      id: '/_authenticated/hashtag/$tag'
+      path: '/hashtag/$tag'
+      fullPath: '/hashtag/$tag'
+      preLoaderRoute: typeof AuthenticatedHashtagTagRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/conversations/$id': {
       id: '/_authenticated/conversations/$id'
@@ -189,10 +286,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedProfileRouteChildren {
+  AuthenticatedProfileFollowersRoute: typeof AuthenticatedProfileFollowersRoute
+  AuthenticatedProfileFollowingRoute: typeof AuthenticatedProfileFollowingRoute
   AuthenticatedProfileSettingsRoute: typeof AuthenticatedProfileSettingsRoute
 }
 
 const AuthenticatedProfileRouteChildren: AuthenticatedProfileRouteChildren = {
+  AuthenticatedProfileFollowersRoute: AuthenticatedProfileFollowersRoute,
+  AuthenticatedProfileFollowingRoute: AuthenticatedProfileFollowingRoute,
   AuthenticatedProfileSettingsRoute: AuthenticatedProfileSettingsRoute,
 }
 
@@ -202,14 +303,20 @@ const AuthenticatedProfileRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
+  AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedConversationsIdRoute: typeof AuthenticatedConversationsIdRoute
+  AuthenticatedHashtagTagRoute: typeof AuthenticatedHashtagTagRoute
+  AuthenticatedUFixedIdRoute: typeof AuthenticatedUFixedIdRoute
   AuthenticatedConversationsIndexRoute: typeof AuthenticatedConversationsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
+  AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedConversationsIdRoute: AuthenticatedConversationsIdRoute,
+  AuthenticatedHashtagTagRoute: AuthenticatedHashtagTagRoute,
+  AuthenticatedUFixedIdRoute: AuthenticatedUFixedIdRoute,
   AuthenticatedConversationsIndexRoute: AuthenticatedConversationsIndexRoute,
 }
 

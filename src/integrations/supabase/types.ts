@@ -19,6 +19,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          parent_id: string | null
           post_id: string
           user_id: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          parent_id?: string | null
           post_id: string
           user_id: string
         }
@@ -33,10 +35,18 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          parent_id?: string | null
           post_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
@@ -99,6 +109,27 @@ export type Database = {
           id?: string
           name?: string | null
           type?: Database["public"]["Enums"]["conversation_type"]
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
         }
         Relationships: []
       }
@@ -203,19 +234,25 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          hashtags: string[]
           id: string
+          image_path: string | null
           user_id: string
         }
         Insert: {
           content: string
           created_at?: string
+          hashtags?: string[]
           id?: string
+          image_path?: string | null
           user_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          hashtags?: string[]
           id?: string
+          image_path?: string | null
           user_id?: string
         }
         Relationships: []
