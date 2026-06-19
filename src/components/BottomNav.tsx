@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, MessageCircle, User } from "lucide-react";
+import { Flame, Search, MessageCircle, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export function BottomNav() {
@@ -7,7 +7,8 @@ export function BottomNav() {
   const { t } = useI18n();
 
   const items = [
-    { to: "/feed", icon: Home, label: t("nav.feed") },
+    { to: "/feed", icon: Flame, label: t("nav.feed") },
+    { to: "/search", icon: Search, label: t("nav.search") },
     { to: "/conversations", icon: MessageCircle, label: t("nav.chats") },
     { to: "/profile", icon: User, label: t("nav.profile") },
   ] as const;
@@ -17,7 +18,7 @@ export function BottomNav() {
       className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="mx-auto max-w-xl grid grid-cols-3">
+      <ul className="mx-auto max-w-xl grid grid-cols-4">
         {items.map(({ to, icon: Icon, label }) => {
           const active = path === to || path.startsWith(to + "/");
           return (
