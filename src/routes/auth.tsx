@@ -54,7 +54,6 @@ function AuthPage() {
           <h1 className="text-6xl text-primary">
             <MeshWord />
           </h1>
-          <p className="text-muted-foreground text-sm mt-3">{t("app.tagline")}</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3">
@@ -86,7 +85,7 @@ function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-primary text-primary-foreground font-medium py-3 disabled:opacity-50"
+            className="w-full rounded-xl bg-primary text-[#1a1a1a] font-medium py-3 disabled:opacity-50"
           >
             {loading ? "…" : mode === "signin" ? t("auth.signin") : t("auth.signup")}
           </button>

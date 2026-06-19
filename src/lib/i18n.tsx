@@ -23,7 +23,7 @@ const ptPT: Dict = {
   "auth.nickname": "Nome de utilizador",
   "auth.toggle.toSignup": "Não tens conta? Criar uma",
   "auth.toggle.toSignin": "Já tens conta? Entrar",
-  "auth.welcome": "Bem-vindo à",
+  "auth.welcome": "Bem-vindo ao",
   "feed.placeholder": "O que se passa?",
   "feed.post": "Publicar",
   "feed.empty": "Ainda não há publicações. Sê o primeiro!",
