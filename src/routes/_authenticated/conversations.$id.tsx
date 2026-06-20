@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { ArrowLeft, Send, Image as ImageIcon, X, Reply, Smile } from "lucide-react";
+import { ArrowLeft, Send, Image as ImageIcon, X, Reply } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/conversations/$id")({

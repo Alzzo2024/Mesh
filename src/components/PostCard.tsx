@@ -406,7 +406,12 @@ export async function loadFeed(userId: string, postIds?: string[]): Promise<Feed
   const { data: posts } = await q;
   if (!posts?.length) return [];
 
-  return await hydratePosts(posts as any, userId);
+  const hydrated = await hydratePosts(posts as any, userId);
+  return hydrated.sort(
+    (a, b) =>
+      (b.profile?.trust_score ?? 0) - (a.profile?.trust_score ?? 0) ||
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 }
 
 export async function hydratePosts(
