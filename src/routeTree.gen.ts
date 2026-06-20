@@ -15,7 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
-import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations.index'
+import { Route as AuthenticatedConversationsRouteImport } from './routes/_authenticated/conversations'
 import { Route as AuthenticatedUFixedIdRouteImport } from './routes/_authenticated/u.$fixedId'
 import { Route as AuthenticatedProfileSettingsRouteImport } from './routes/_authenticated/profile.settings'
 import { Route as AuthenticatedProfileFollowingRouteImport } from './routes/_authenticated/profile.following'
@@ -52,10 +52,10 @@ const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedConversationsIndexRoute =
-  AuthenticatedConversationsIndexRouteImport.update({
-    id: '/conversations/',
-    path: '/conversations/',
+const AuthenticatedConversationsRoute =
+  AuthenticatedConversationsRouteImport.update({
+    id: '/conversations',
+    path: '/conversations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedUFixedIdRoute = AuthenticatedUFixedIdRouteImport.update({
@@ -88,14 +88,15 @@ const AuthenticatedHashtagTagRoute = AuthenticatedHashtagTagRouteImport.update({
 } as any)
 const AuthenticatedConversationsIdRoute =
   AuthenticatedConversationsIdRouteImport.update({
-    id: '/conversations/$id',
-    path: '/conversations/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedConversationsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/conversations': typeof AuthenticatedConversationsRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/search': typeof AuthenticatedSearchRoute
@@ -105,11 +106,11 @@ export interface FileRoutesByFullPath {
   '/profile/following': typeof AuthenticatedProfileFollowingRoute
   '/profile/settings': typeof AuthenticatedProfileSettingsRoute
   '/u/$fixedId': typeof AuthenticatedUFixedIdRoute
-  '/conversations/': typeof AuthenticatedConversationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/conversations': typeof AuthenticatedConversationsRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/search': typeof AuthenticatedSearchRoute
@@ -119,13 +120,13 @@ export interface FileRoutesByTo {
   '/profile/following': typeof AuthenticatedProfileFollowingRoute
   '/profile/settings': typeof AuthenticatedProfileSettingsRoute
   '/u/$fixedId': typeof AuthenticatedUFixedIdRoute
-  '/conversations': typeof AuthenticatedConversationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/conversations': typeof AuthenticatedConversationsRouteWithChildren
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/search': typeof AuthenticatedSearchRoute
@@ -135,13 +136,13 @@ export interface FileRoutesById {
   '/_authenticated/profile/following': typeof AuthenticatedProfileFollowingRoute
   '/_authenticated/profile/settings': typeof AuthenticatedProfileSettingsRoute
   '/_authenticated/u/$fixedId': typeof AuthenticatedUFixedIdRoute
-  '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/conversations'
     | '/feed'
     | '/profile'
     | '/search'
@@ -151,11 +152,11 @@ export interface FileRouteTypes {
     | '/profile/following'
     | '/profile/settings'
     | '/u/$fixedId'
-    | '/conversations/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/conversations'
     | '/feed'
     | '/profile'
     | '/search'
@@ -165,12 +166,12 @@ export interface FileRouteTypes {
     | '/profile/following'
     | '/profile/settings'
     | '/u/$fixedId'
-    | '/conversations'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/conversations'
     | '/_authenticated/feed'
     | '/_authenticated/profile'
     | '/_authenticated/search'
@@ -180,7 +181,6 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/following'
     | '/_authenticated/profile/settings'
     | '/_authenticated/u/$fixedId'
-    | '/_authenticated/conversations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -233,11 +233,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFeedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/conversations/': {
-      id: '/_authenticated/conversations/'
+    '/_authenticated/conversations': {
+      id: '/_authenticated/conversations'
       path: '/conversations'
-      fullPath: '/conversations/'
-      preLoaderRoute: typeof AuthenticatedConversationsIndexRouteImport
+      fullPath: '/conversations'
+      preLoaderRoute: typeof AuthenticatedConversationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/u/$fixedId': {
@@ -277,13 +277,27 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/conversations/$id': {
       id: '/_authenticated/conversations/$id'
-      path: '/conversations/$id'
+      path: '/$id'
       fullPath: '/conversations/$id'
       preLoaderRoute: typeof AuthenticatedConversationsIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedConversationsRoute
     }
   }
 }
+
+interface AuthenticatedConversationsRouteChildren {
+  AuthenticatedConversationsIdRoute: typeof AuthenticatedConversationsIdRoute
+}
+
+const AuthenticatedConversationsRouteChildren: AuthenticatedConversationsRouteChildren =
+  {
+    AuthenticatedConversationsIdRoute: AuthenticatedConversationsIdRoute,
+  }
+
+const AuthenticatedConversationsRouteWithChildren =
+  AuthenticatedConversationsRoute._addFileChildren(
+    AuthenticatedConversationsRouteChildren,
+  )
 
 interface AuthenticatedProfileRouteChildren {
   AuthenticatedProfileFollowersRoute: typeof AuthenticatedProfileFollowersRoute
@@ -301,23 +315,21 @@ const AuthenticatedProfileRouteWithChildren =
   AuthenticatedProfileRoute._addFileChildren(AuthenticatedProfileRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedConversationsRoute: typeof AuthenticatedConversationsRouteWithChildren
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
-  AuthenticatedConversationsIdRoute: typeof AuthenticatedConversationsIdRoute
   AuthenticatedHashtagTagRoute: typeof AuthenticatedHashtagTagRoute
   AuthenticatedUFixedIdRoute: typeof AuthenticatedUFixedIdRoute
-  AuthenticatedConversationsIndexRoute: typeof AuthenticatedConversationsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedConversationsRoute: AuthenticatedConversationsRouteWithChildren,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
-  AuthenticatedConversationsIdRoute: AuthenticatedConversationsIdRoute,
   AuthenticatedHashtagTagRoute: AuthenticatedHashtagTagRoute,
   AuthenticatedUFixedIdRoute: AuthenticatedUFixedIdRoute,
-  AuthenticatedConversationsIndexRoute: AuthenticatedConversationsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -6,7 +6,7 @@ import { Avatar } from "@/components/Avatar";
 import { UserPlus, Users, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/conversations/")({
+export const Route = createFileRoute("/_authenticated/conversations")({
   head: () => ({ meta: [{ title: "Mesh — Conversas" }] }),
   component: ConvList,
 });
