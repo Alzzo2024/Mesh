@@ -239,10 +239,13 @@ export function PostCard({
               </div>
             </div>
           ) : (
-            <Link to="/post/$id" params={{ id: post.id }} className="mt-1 block whitespace-pre-wrap break-words hover:opacity-90">
+            <p className="mt-1 whitespace-pre-wrap break-words">
               <HashtagText text={post.content} />
-            </Link>
+            </p>
           )}
+          <Link to="/post/$id" params={{ id: post.id }} className="mt-1 inline-block text-xs text-muted-foreground hover:text-primary">
+            {new Date(post.created_at).toLocaleString()}
+          </Link>
           {post.image_path && (
             <SignedImage
               path={post.image_path}
