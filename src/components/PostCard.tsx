@@ -333,7 +333,13 @@ function CommentItem({
         <div className="flex-1">
           <div className="text-xs flex items-center gap-2">
             <span className="font-medium">{comment.profile?.nickname}</span>
-            <span className="text-muted-foreground">#{comment.profile?.fixed_id}</span>
+            <TrustBadge
+              targetUserId={comment.user_id}
+              initialScore={comment.profile?.trust_score ?? 0}
+              interactive={me !== comment.user_id}
+              compact
+            />
+            <span className="block text-muted-foreground">#{comment.profile?.fixed_id}</span>
             {me === comment.user_id && (
               <button
                 onClick={() => onDelete(comment.id)}
@@ -361,6 +367,12 @@ function CommentItem({
               <div className="flex-1">
                 <div className="text-xs flex items-center gap-2">
                   <span className="font-medium">{r.profile?.nickname}</span>
+                  <TrustBadge
+                    targetUserId={r.user_id}
+                    initialScore={r.profile?.trust_score ?? 0}
+                    interactive={me !== r.user_id}
+                    compact
+                  />
                   <span className="text-muted-foreground">#{r.profile?.fixed_id}</span>
                   {me === r.user_id && (
                     <button
@@ -400,12 +412,15 @@ export async function hydratePosts(
 ): Promise<FeedPost[]> {
   const userIds = [...new Set(posts.map((p) => p.user_id))];
   const postIds = posts.map((p) => p.id);
-  const [profilesRes, reactionsRes, commentsRes] = await Promise.all([
+  const [profilesRes, reactionsRes, commentsRes, trustScores] = await Promise.all([
     supabase.from("profiles").select("id, fixed_id, nickname, avatar_url").in("id", userIds),
     supabase.from("post_reactions").select("post_id, user_id, reaction").in("post_id", postIds),
     supabase.from("comments").select("post_id").in("post_id", postIds),
+    fetchTrustScores(userIds),
   ]);
-  const profileMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p as FeedProfile]));
+  const profileMap = new Map(
+    (profilesRes.data ?? []).map((p) => [p.id, { ...(p as FeedProfile), trust_score: trustScores.get(p.id) ?? 0 }]),
+  );
   const reactions = reactionsRes.data ?? [];
   const comments = commentsRes.data ?? [];
   return posts.map((p) => {
