@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
+import { OnboardingOverlay } from "@/components/OnboardingOverlay";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
@@ -18,6 +19,7 @@ function AuthedLayout() {
       <div className="mx-auto max-w-xl">
         <Outlet />
       </div>
+      <OnboardingOverlay />
       <BottomNav />
     </div>
   );
