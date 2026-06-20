@@ -171,31 +171,76 @@ function ChatPage() {
           return (
             <div key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
               {!mine && <Avatar url={prof?.avatar_url} name={prof?.nickname} size={28} />}
-              <div
-                className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
-                  mine
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-secondary text-foreground rounded-bl-sm"
-                }`}
-              >
-                {conv?.type === "group" && !mine && (
-                  <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+              <div className="relative max-w-[75%]">
+                <button
+                  type="button"
+                  onClick={() => setActiveMsg((v) => (v === m.id ? null : m.id))}
+                  className={`w-full rounded-2xl px-3.5 py-2 text-left ${
+                    mine
+                      ? "bg-primary text-[#1a1a1a] rounded-br-sm"
+                      : "bg-secondary text-foreground rounded-bl-sm"
+                  }`}
+                >
+                  {conv?.type === "group" && !mine && (
+                    <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+                  )}
+                  {m.reply_to && <ReplyPreview message={messages.find((x) => x.id === m.reply_to)} profiles={profiles} mine={mine} />}
+                  {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} />}
+                  {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
+                </button>
+                {(reactions[m.id]?.length ?? 0) > 0 && (
+                  <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
+                    {Object.entries(countEmojis(reactions[m.id])).map(([emoji, count]) => (
+                      <span key={emoji} className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs">
+                        {emoji} {count}
+                      </span>
+                    ))}
+                  </div>
                 )}
-                {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} />}
-                {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
+                {activeMsg === m.id && (
+                  <div className={`absolute top-full z-20 mt-1 flex gap-1 rounded-full border border-border bg-popover p-1 shadow-xl ${mine ? "right-0" : "left-0"}`}>
+                    {["💚", "😂", "🔥", "⭐"].map((emoji) => (
+                      <button key={emoji} onClick={() => reactToMessage(m.id, emoji)} className="rounded-full px-2 py-1 hover:bg-secondary" aria-label={t("chat.react")}>
+                        {emoji}
+                      </button>
+                    ))}
+                    <button onClick={() => { setReplyTo(m); setActiveMsg(null); }} className="rounded-full p-1.5 hover:bg-secondary" aria-label={t("chat.reply")}>
+                      <Reply className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="sticky bottom-20 bg-background border-t border-border p-2 flex items-center gap-2">
+      <div className="sticky bottom-20 border-t border-border bg-background p-2">
+        {(replyTo || selectedPreview) && (
+          <div className="mb-2 rounded-xl border border-border bg-secondary/60 p-2 text-sm">
+            {replyTo && (
+              <div className="mb-1 flex items-center justify-between gap-2 text-muted-foreground">
+                <span>{t("chat.replyingTo")}: {profiles[replyTo.sender_id]?.nickname ?? t("common.you")}</span>
+                <button onClick={() => setReplyTo(null)}><X className="h-4 w-4" /></button>
+              </div>
+            )}
+            {selectedPreview && (
+              <div className="relative inline-block">
+                <img src={selectedPreview} alt="" className="max-h-28 rounded-lg" />
+                <button onClick={clearSelectedImage} className="absolute right-1 top-1 rounded-full bg-background/80 p-1">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="flex items-center gap-2">
         <input
           ref={fileRef}
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])}
+          onChange={(e) => chooseImage(e.target.files?.[0])}
         />
         <button onClick={() => fileRef.current?.click()} className="p-2 text-muted-foreground">
           <ImageIcon className="h-5 w-5" />
@@ -209,11 +254,12 @@ function ChatPage() {
         />
         <button
           onClick={send}
-          className="rounded-full bg-primary text-primary-foreground p-2.5"
+          className="rounded-full bg-primary text-[#1a1a1a] p-2.5"
           aria-label="send"
         >
           <Send className="h-5 w-5" />
         </button>
+        </div>
       </div>
     </div>
   );
