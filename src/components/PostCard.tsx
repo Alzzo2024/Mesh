@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, MessageCircle, ThumbsDown, Send, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { SignedImage } from "@/components/SignedImage";
-import { tokenizeHashtags } from "@/lib/hashtags";
+import { extractHashtags, tokenizeHashtags } from "@/lib/hashtags";
+import { TrustBadge } from "@/components/TrustBadge";
 import { toast } from "sonner";
 
 export type FeedProfile = {
@@ -13,6 +14,7 @@ export type FeedProfile = {
   fixed_id: string;
   nickname: string;
   avatar_url: string | null;
+  trust_score?: number;
 };
 
 export type FeedPost = {
@@ -59,6 +61,16 @@ function HashtagText({ text }: { text: string }) {
   );
 }
 
+async function fetchTrustScores(userIds: string[]) {
+  if (userIds.length === 0) return new Map<string, number>();
+  const { data } = await supabase.from("trust_votes").select("target_user_id").in("target_user_id", userIds);
+  const scores = new Map<string, number>();
+  for (const row of data ?? []) {
+    scores.set(row.target_user_id, (scores.get(row.target_user_id) ?? 0) + 1);
+  }
+  return scores;
+}
+
 export function PostCard({
   post,
   me,
@@ -75,6 +87,9 @@ export function PostCard({
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(post.content);
 
   async function loadComments() {
     const { data } = await supabase
@@ -88,7 +103,10 @@ export function PostCard({
       .from("profiles")
       .select("id, nickname, fixed_id, avatar_url")
       .in("id", ids);
-    const map = new Map((profiles ?? []).map((p) => [p.id, p as FeedProfile]));
+    const trustScores = await fetchTrustScores(ids);
+    const map = new Map(
+      (profiles ?? []).map((p) => [p.id, { ...(p as FeedProfile), trust_score: trustScores.get(p.id) ?? 0 }]),
+    );
     setComments(data.map((c) => ({ ...c, profile: map.get(c.user_id) })));
   }
 
@@ -122,6 +140,19 @@ export function PostCard({
     onDeleted?.();
   }
 
+  async function saveEdit() {
+    const content = editText.trim();
+    if (!content) return;
+    const { error } = await supabase
+      .from("posts")
+      .update({ content, hashtags: extractHashtags(content) })
+      .eq("id", post.id);
+    if (error) return toast.error(error.message);
+    setEditing(false);
+    setMenuOpen(false);
+    onDeleted?.();
+  }
+
   const topComments = comments.filter((c) => !c.parent_id);
   const repliesByParent = new Map<string, CommentRow[]>();
   for (const c of comments) {
@@ -139,28 +170,82 @@ export function PostCard({
           <Avatar url={post.profile?.avatar_url} name={post.profile?.nickname} />
         </Link>
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
-            <Link
-              to="/u/$fixedId"
-              params={{ fixedId: post.profile?.fixed_id ?? "" }}
-              className="font-medium text-foreground truncate hover:underline"
-            >
-              {post.profile?.nickname ?? "?"}
-            </Link>
-            <span className="text-xs text-muted-foreground">#{post.profile?.fixed_id}</span>
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/u/$fixedId"
+                  params={{ fixedId: post.profile?.fixed_id ?? "" }}
+                  className="truncate font-medium text-foreground hover:underline"
+                >
+                  {post.profile?.nickname ?? "?"}
+                </Link>
+                <TrustBadge
+                  targetUserId={post.user_id}
+                  initialScore={post.profile?.trust_score ?? 0}
+                  interactive={me !== post.user_id}
+                  compact
+                />
+              </div>
+              <span className="block text-xs text-muted-foreground">#{post.profile?.fixed_id}</span>
+            </div>
             {me === post.user_id && (
-              <button
-                onClick={deletePost}
-                className="ml-auto p-1 text-muted-foreground hover:text-destructive"
-                aria-label={t("feed.delete")}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="relative ml-auto">
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="p-1 text-muted-foreground hover:text-foreground"
+                  aria-label={t("feed.actions")}
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-7 z-20 min-w-36 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                    <button
+                      onClick={() => {
+                        setEditing(true);
+                        setMenuOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                    >
+                      <Pencil className="h-4 w-4" /> {t("feed.edit")}
+                    </button>
+                    <button
+                      onClick={deletePost}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-secondary"
+                    >
+                      <Trash2 className="h-4 w-4" /> {t("feed.delete")}
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
-          <p className="mt-1 whitespace-pre-wrap break-words">
-            <HashtagText text={post.content} />
-          </p>
+          {editing ? (
+            <div className="mt-2 space-y-2">
+              <textarea
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                maxLength={500}
+                rows={3}
+                className="w-full resize-none rounded-xl border border-border bg-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setEditing(false)} className="rounded-full bg-secondary px-3 py-1.5 text-sm">
+                  <X className="inline h-3.5 w-3.5" /> {t("common.cancel")}
+                </button>
+                <button onClick={saveEdit} className="rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-[#1a1a1a]">
+                  {t("settings.save")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-1 whitespace-pre-wrap break-words">
+              <HashtagText text={post.content} />
+            </p>
+          )}
+          <Link to="/post/$id" params={{ id: post.id }} className="mt-1 inline-block text-xs text-muted-foreground hover:text-primary">
+            {new Date(post.created_at).toLocaleString()}
+          </Link>
           {post.image_path && (
             <SignedImage
               path={post.image_path}
@@ -251,7 +336,13 @@ function CommentItem({
         <div className="flex-1">
           <div className="text-xs flex items-center gap-2">
             <span className="font-medium">{comment.profile?.nickname}</span>
-            <span className="text-muted-foreground">#{comment.profile?.fixed_id}</span>
+            <TrustBadge
+              targetUserId={comment.user_id}
+              initialScore={comment.profile?.trust_score ?? 0}
+              interactive={me !== comment.user_id}
+              compact
+            />
+            <span className="block text-muted-foreground">#{comment.profile?.fixed_id}</span>
             {me === comment.user_id && (
               <button
                 onClick={() => onDelete(comment.id)}
@@ -279,6 +370,12 @@ function CommentItem({
               <div className="flex-1">
                 <div className="text-xs flex items-center gap-2">
                   <span className="font-medium">{r.profile?.nickname}</span>
+                  <TrustBadge
+                    targetUserId={r.user_id}
+                    initialScore={r.profile?.trust_score ?? 0}
+                    interactive={me !== r.user_id}
+                    compact
+                  />
                   <span className="text-muted-foreground">#{r.profile?.fixed_id}</span>
                   {me === r.user_id && (
                     <button
@@ -309,7 +406,12 @@ export async function loadFeed(userId: string, postIds?: string[]): Promise<Feed
   const { data: posts } = await q;
   if (!posts?.length) return [];
 
-  return await hydratePosts(posts as any, userId);
+  const hydrated = await hydratePosts(posts as any, userId);
+  return hydrated.sort(
+    (a, b) =>
+      (b.profile?.trust_score ?? 0) - (a.profile?.trust_score ?? 0) ||
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 }
 
 export async function hydratePosts(
@@ -318,12 +420,15 @@ export async function hydratePosts(
 ): Promise<FeedPost[]> {
   const userIds = [...new Set(posts.map((p) => p.user_id))];
   const postIds = posts.map((p) => p.id);
-  const [profilesRes, reactionsRes, commentsRes] = await Promise.all([
+  const [profilesRes, reactionsRes, commentsRes, trustScores] = await Promise.all([
     supabase.from("profiles").select("id, fixed_id, nickname, avatar_url").in("id", userIds),
     supabase.from("post_reactions").select("post_id, user_id, reaction").in("post_id", postIds),
     supabase.from("comments").select("post_id").in("post_id", postIds),
+    fetchTrustScores(userIds),
   ]);
-  const profileMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p as FeedProfile]));
+  const profileMap = new Map(
+    (profilesRes.data ?? []).map((p) => [p.id, { ...(p as FeedProfile), trust_score: trustScores.get(p.id) ?? 0 }]),
+  );
   const reactions = reactionsRes.data ?? [];
   const comments = commentsRes.data ?? [];
   return posts.map((p) => {

@@ -160,6 +160,38 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string | null
@@ -168,6 +200,7 @@ export type Database = {
           id: string
           media_type: Database["public"]["Enums"]["message_media_type"] | null
           media_url: string | null
+          reply_to: string | null
           sender_id: string
         }
         Insert: {
@@ -177,6 +210,7 @@ export type Database = {
           id?: string
           media_type?: Database["public"]["Enums"]["message_media_type"] | null
           media_url?: string | null
+          reply_to?: string | null
           sender_id: string
         }
         Update: {
@@ -186,6 +220,7 @@ export type Database = {
           id?: string
           media_type?: Database["public"]["Enums"]["message_media_type"] | null
           media_url?: string | null
+          reply_to?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -194,6 +229,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
@@ -237,6 +279,7 @@ export type Database = {
           hashtags: string[]
           id: string
           image_path: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -245,6 +288,7 @@ export type Database = {
           hashtags?: string[]
           id?: string
           image_path?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -253,6 +297,7 @@ export type Database = {
           hashtags?: string[]
           id?: string
           image_path?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -270,6 +315,7 @@ export type Database = {
           language: string
           last_nickname_update: string
           nickname: string
+          onboarded_at: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -283,6 +329,7 @@ export type Database = {
           language?: string
           last_nickname_update?: string
           nickname: string
+          onboarded_at?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -296,6 +343,31 @@ export type Database = {
           language?: string
           last_nickname_update?: string
           nickname?: string
+          onboarded_at?: string | null
+        }
+        Relationships: []
+      }
+      trust_votes: {
+        Row: {
+          created_at: string
+          id: string
+          target_user_id: string
+          vote_week: string
+          voter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_user_id: string
+          vote_week: string
+          voter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_user_id?: string
+          vote_week?: string
+          voter_id?: string
         }
         Relationships: []
       }

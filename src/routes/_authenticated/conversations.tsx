@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -6,7 +6,7 @@ import { Avatar } from "@/components/Avatar";
 import { UserPlus, Users, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/conversations/")({
+export const Route = createFileRoute("/_authenticated/conversations")({
   head: () => ({ meta: [{ title: "Mesh — Conversas" }] }),
   component: ConvList,
 });
@@ -23,6 +23,7 @@ type ConvRow = {
 function ConvList() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const path = useRouterState({ select: (s) => s.location.pathname });
   const [me, setMe] = useState<string | null>(null);
   const [convs, setConvs] = useState<ConvRow[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
@@ -184,6 +185,8 @@ function ConvList() {
     navigate({ to: "/conversations/$id", params: { id: conv.id } });
   }
 
+  if (path !== "/conversations") return <Outlet />;
+
   return (
     <div>
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
@@ -204,7 +207,7 @@ function ConvList() {
           />
           <button
             onClick={sendFriendRequest}
-            className="rounded-xl bg-primary text-primary-foreground px-4"
+            className="rounded-xl bg-primary text-[#1a1a1a] px-4"
             aria-label="add"
           >
             <UserPlus className="h-5 w-5" />
@@ -223,7 +226,7 @@ function ConvList() {
                   <div className="font-medium truncate">{p.profile?.nickname}</div>
                   <div className="text-xs text-muted-foreground">#{p.profile?.fixed_id}</div>
                 </div>
-                <button onClick={() => acceptFriend(p)} className="rounded-full bg-primary text-primary-foreground p-2">
+                <button onClick={() => acceptFriend(p)} className="rounded-full bg-primary text-[#1a1a1a] p-2">
                   <Check className="h-4 w-4" />
                 </button>
                 <button onClick={() => rejectFriend(p)} className="rounded-full bg-secondary p-2">
@@ -274,7 +277,7 @@ function ConvList() {
           <button
             onClick={createGroup}
             disabled={!groupName.trim() || groupSel.length === 0}
-            className="w-full rounded-xl bg-primary text-primary-foreground py-2.5 disabled:opacity-40"
+            className="w-full rounded-xl bg-primary text-[#1a1a1a] py-2.5 disabled:opacity-40"
           >
             {t("chats.create")}
           </button>

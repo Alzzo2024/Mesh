@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Flame, Search, MessageCircle, User } from "lucide-react";
+import { FlameKindling, Search, MessageCircle, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export function BottomNav() {
@@ -7,7 +7,7 @@ export function BottomNav() {
   const { t } = useI18n();
 
   const items = [
-    { to: "/feed", icon: Flame, label: t("nav.feed") },
+    { to: "/feed", icon: FlameKindling, label: t("nav.feed") },
     { to: "/search", icon: Search, label: t("nav.search") },
     { to: "/conversations", icon: MessageCircle, label: t("nav.chats") },
     { to: "/profile", icon: User, label: t("nav.profile") },

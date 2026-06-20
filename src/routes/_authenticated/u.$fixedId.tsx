@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,8 @@ import { Avatar } from "@/components/Avatar";
 import { SignedImage } from "@/components/SignedImage";
 import { FollowButton } from "@/components/FollowButton";
 import { PostCard, hydratePosts, type FeedPost } from "@/components/PostCard";
+import { CreatorBadge } from "@/components/CreatorBadge";
+import { TrustBadge } from "@/components/TrustBadge";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -18,6 +20,7 @@ function UserProfilePage() {
   const { fixedId } = Route.useParams();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const path = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<any>(null);
   const [me, setMe] = useState<string | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -83,6 +86,8 @@ function UserProfilePage() {
     load();
   }
 
+  if (path !== `/u/${fixedId}`) return <Outlet />;
+
   if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
 
   return (
@@ -100,7 +105,11 @@ function UserProfilePage() {
         <Avatar url={profile.avatar_url} name={profile.nickname} size={80} className="ring-4 ring-background" />
         <div className="flex items-center justify-between mt-3 gap-2">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold truncate">{profile.nickname}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold truncate">{profile.nickname}</h1>
+              <TrustBadge targetUserId={profile.id} interactive={me !== profile.id} />
+              <CreatorBadge fixedId={profile.fixed_id} />
+            </div>
             <p className="text-sm text-muted-foreground font-mono">#{profile.fixed_id}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -116,14 +125,14 @@ function UserProfilePage() {
         </div>
         {profile.bio && <p className="text-sm mt-2 whitespace-pre-wrap">{profile.bio}</p>}
         <div className="flex gap-4 mt-3 text-sm">
-          <span>
+          <Link to="/u/$fixedId/followers" params={{ fixedId: profile.fixed_id }} className="hover:underline">
             <strong>{counts.followers}</strong>{" "}
             <span className="text-muted-foreground">{t("follow.followers")}</span>
-          </span>
-          <span>
+          </Link>
+          <Link to="/u/$fixedId/following" params={{ fixedId: profile.fixed_id }} className="hover:underline">
             <strong>{counts.following}</strong>{" "}
             <span className="text-muted-foreground">{t("follow.following")}</span>
-          </span>
+          </Link>
         </div>
       </div>
 

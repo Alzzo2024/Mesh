@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { ArrowLeft, Send, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Send, Image as ImageIcon, X, Reply } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/conversations/$id")({
@@ -17,8 +17,25 @@ type Msg = {
   content: string | null;
   media_url: string | null;
   media_type: string | null;
+  reply_to: string | null;
   created_at: string;
 };
+
+type MessageReaction = { message_id: string; user_id: string; emoji: string };
+
+function groupReactions(rows: MessageReaction[]) {
+  return rows.reduce<Record<string, MessageReaction[]>>((acc, row) => {
+    acc[row.message_id] = [...(acc[row.message_id] ?? []), row];
+    return acc;
+  }, {});
+}
+
+function countEmojis(rows: MessageReaction[]) {
+  return rows.reduce<Record<string, number>>((acc, row) => {
+    acc[row.emoji] = (acc[row.emoji] ?? 0) + 1;
+    return acc;
+  }, {});
+}
 
 function ChatPage() {
   const { id } = Route.useParams();
@@ -27,7 +44,12 @@ function ChatPage() {
   const [conv, setConv] = useState<any>(null);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [reactions, setReactions] = useState<Record<string, MessageReaction[]>>({});
   const [text, setText] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<Msg | null>(null);
+  const [activeMsg, setActiveMsg] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -60,11 +82,18 @@ function ChatPage() {
 
     const { data: msgs } = await supabase
       .from("messages")
-      .select("id, sender_id, content, media_url, media_type, created_at")
+      .select("id, sender_id, content, media_url, media_type, reply_to, created_at")
       .eq("conversation_id", id)
       .order("created_at", { ascending: true })
       .limit(500);
     setMessages((msgs as Msg[]) ?? []);
+
+    const messageIds = (msgs ?? []).map((m) => m.id);
+    const { data: rs } = await supabase
+      .from("message_reactions")
+      .select("message_id, user_id, emoji")
+      .in("message_id", messageIds.length ? messageIds : ["00000000-0000-0000-0000-000000000000"]);
+    setReactions(groupReactions((rs as MessageReaction[]) ?? []));
   }
 
   useEffect(() => {
@@ -78,6 +107,7 @@ function ChatPage() {
           setMessages((m) => [...m, payload.new as Msg]);
         },
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" }, load)
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
@@ -90,26 +120,48 @@ function ChatPage() {
   }, [messages]);
 
   async function send() {
-    if (!text.trim() || !me) return;
+    if ((!text.trim() && !selectedFile) || !me) return;
     const content = text.trim();
     setText("");
+    let media_url: string | null = null;
+    let media_type: "image" | null = null;
+    if (selectedFile) {
+      const path = `${me}/${Date.now()}-${selectedFile.name}`;
+      const { error } = await supabase.storage.from("message-media").upload(path, selectedFile);
+      if (error) return toast.error(error.message);
+      media_url = `message-media/${path}`;
+      media_type = "image";
+    }
     const { error } = await supabase
       .from("messages")
-      .insert({ conversation_id: id, sender_id: me, content });
+      .insert({ conversation_id: id, sender_id: me, content, media_url, media_type, reply_to: replyTo?.id ?? null });
     if (error) toast.error(error.message);
+    clearSelectedImage();
+    setReplyTo(null);
   }
 
-  async function uploadImage(file: File) {
+  function chooseImage(file: File | undefined) {
+    if (!file) return;
+    clearSelectedImage();
+    setSelectedFile(file);
+    setSelectedPreview(URL.createObjectURL(file));
+  }
+
+  function clearSelectedImage() {
+    if (selectedPreview) URL.revokeObjectURL(selectedPreview);
+    setSelectedFile(null);
+    setSelectedPreview(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  async function reactToMessage(messageId: string, emoji: string) {
     if (!me) return;
-    const path = `${me}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("message-media").upload(path, file);
+    const { error } = await supabase
+      .from("message_reactions")
+      .upsert({ message_id: messageId, user_id: me, emoji }, { onConflict: "message_id,user_id" });
     if (error) return toast.error(error.message);
-    await supabase.from("messages").insert({
-      conversation_id: id,
-      sender_id: me,
-      media_url: `message-media/${path}`,
-      media_type: "image",
-    });
+    setActiveMsg(null);
+    load();
   }
 
   const title =
@@ -133,31 +185,76 @@ function ChatPage() {
           return (
             <div key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
               {!mine && <Avatar url={prof?.avatar_url} name={prof?.nickname} size={28} />}
-              <div
-                className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
-                  mine
-                    ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-secondary text-foreground rounded-bl-sm"
-                }`}
-              >
-                {conv?.type === "group" && !mine && (
-                  <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+              <div className="relative max-w-[75%]">
+                <button
+                  type="button"
+                  onClick={() => setActiveMsg((v) => (v === m.id ? null : m.id))}
+                  className={`w-full rounded-2xl px-3.5 py-2 text-left ${
+                    mine
+                      ? "bg-primary text-[#1a1a1a] rounded-br-sm"
+                      : "bg-secondary text-foreground rounded-bl-sm"
+                  }`}
+                >
+                  {conv?.type === "group" && !mine && (
+                    <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+                  )}
+                  {m.reply_to && <ReplyPreview message={messages.find((x) => x.id === m.reply_to)} profiles={profiles} mine={mine} />}
+                  {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} />}
+                  {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
+                </button>
+                {(reactions[m.id]?.length ?? 0) > 0 && (
+                  <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
+                    {Object.entries(countEmojis(reactions[m.id])).map(([emoji, count]) => (
+                      <span key={emoji} className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs">
+                        {emoji} {count}
+                      </span>
+                    ))}
+                  </div>
                 )}
-                {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} />}
-                {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
+                {activeMsg === m.id && (
+                  <div className={`absolute top-full z-20 mt-1 flex gap-1 rounded-full border border-border bg-popover p-1 shadow-xl ${mine ? "right-0" : "left-0"}`}>
+                    {["💚", "😂", "🔥", "⭐"].map((emoji) => (
+                      <button key={emoji} onClick={() => reactToMessage(m.id, emoji)} className="rounded-full px-2 py-1 hover:bg-secondary" aria-label={t("chat.react")}>
+                        {emoji}
+                      </button>
+                    ))}
+                    <button onClick={() => { setReplyTo(m); setActiveMsg(null); }} className="rounded-full p-1.5 hover:bg-secondary" aria-label={t("chat.reply")}>
+                      <Reply className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="sticky bottom-20 bg-background border-t border-border p-2 flex items-center gap-2">
+      <div className="sticky bottom-20 border-t border-border bg-background p-2">
+        {(replyTo || selectedPreview) && (
+          <div className="mb-2 rounded-xl border border-border bg-secondary/60 p-2 text-sm">
+            {replyTo && (
+              <div className="mb-1 flex items-center justify-between gap-2 text-muted-foreground">
+                <span>{t("chat.replyingTo")}: {profiles[replyTo.sender_id]?.nickname ?? t("common.you")}</span>
+                <button onClick={() => setReplyTo(null)}><X className="h-4 w-4" /></button>
+              </div>
+            )}
+            {selectedPreview && (
+              <div className="relative inline-block">
+                <img src={selectedPreview} alt="" className="max-h-28 rounded-lg" />
+                <button onClick={clearSelectedImage} className="absolute right-1 top-1 rounded-full bg-background/80 p-1">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        <div className="flex items-center gap-2">
         <input
           ref={fileRef}
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])}
+          onChange={(e) => chooseImage(e.target.files?.[0])}
         />
         <button onClick={() => fileRef.current?.click()} className="p-2 text-muted-foreground">
           <ImageIcon className="h-5 w-5" />
@@ -171,11 +268,12 @@ function ChatPage() {
         />
         <button
           onClick={send}
-          className="rounded-full bg-primary text-primary-foreground p-2.5"
+          className="rounded-full bg-primary text-[#1a1a1a] p-2.5"
           aria-label="send"
         >
           <Send className="h-5 w-5" />
         </button>
+        </div>
       </div>
     </div>
   );
@@ -194,4 +292,22 @@ function MediaImg({ path }: { path: string }) {
   if (!url) return null;
   // eslint-disable-next-line jsx-a11y/alt-text
   return <img src={url} className="rounded-lg max-w-full mb-1" />;
+}
+
+function ReplyPreview({
+  message,
+  profiles,
+  mine,
+}: {
+  message?: Msg;
+  profiles: Record<string, any>;
+  mine: boolean;
+}) {
+  if (!message) return null;
+  return (
+    <div className={`mb-1 rounded-lg border-l-2 px-2 py-1 text-xs ${mine ? "border-background/50 bg-background/10" : "border-primary bg-background/20"}`}>
+      <div className="font-medium opacity-80">{profiles[message.sender_id]?.nickname ?? "Mesh"}</div>
+      <div className="line-clamp-2 opacity-70">{message.content || "📷"}</div>
+    </div>
+  );
 }
