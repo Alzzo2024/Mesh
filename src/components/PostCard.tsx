@@ -61,6 +61,16 @@ function HashtagText({ text }: { text: string }) {
   );
 }
 
+async function fetchTrustScores(userIds: string[]) {
+  if (userIds.length === 0) return new Map<string, number>();
+  const { data } = await supabase.from("trust_votes").select("target_user_id").in("target_user_id", userIds);
+  const scores = new Map<string, number>();
+  for (const row of data ?? []) {
+    scores.set(row.target_user_id, (scores.get(row.target_user_id) ?? 0) + 1);
+  }
+  return scores;
+}
+
 export function PostCard({
   post,
   me,
