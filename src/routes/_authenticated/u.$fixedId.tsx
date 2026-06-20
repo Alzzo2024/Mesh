@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ function UserProfilePage() {
   const { fixedId } = Route.useParams();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const path = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<any>(null);
   const [me, setMe] = useState<string | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -86,6 +87,7 @@ function UserProfilePage() {
   }
 
   if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
+  if (path !== `/u/${fixedId}`) return <Outlet />;
 
   return (
     <div>
