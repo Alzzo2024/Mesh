@@ -1,10 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { SignedImage } from "@/components/SignedImage";
+import { CreatorBadge } from "@/components/CreatorBadge";
+import { TrustBadge } from "@/components/TrustBadge";
+import { PostCard, hydratePosts, type FeedPost } from "@/components/PostCard";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Mesh — Perfil" }] }),
@@ -13,8 +16,10 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 function ProfilePage() {
   const { t } = useI18n();
+  const path = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<any>(null);
-  const [posts, setPosts] = useState<any[]>([]);
+  const [me, setMe] = useState<string | null>(null);
+  const [posts, setPosts] = useState<FeedPost[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [tab, setTab] = useState<"posts" | "comments">("posts");
   const [counts, setCounts] = useState({ followers: 0, following: 0 });
@@ -24,13 +29,14 @@ function ProfilePage() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
+    setMe(user.id);
     const { data: p } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     setProfile(p);
 
     const [psRes, csRes, fol, fwg] = await Promise.all([
       supabase
         .from("posts")
-        .select("id, content, created_at")
+        .select("id, user_id, content, created_at, image_path, hashtags")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -41,7 +47,7 @@ function ProfilePage() {
       supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user.id),
       supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user.id),
     ]);
-    setPosts(psRes.data ?? []);
+    setPosts(psRes.data?.length ? await hydratePosts(psRes.data as any, user.id) : []);
     setComments(csRes.data ?? []);
     setCounts({ followers: fol.count ?? 0, following: fwg.count ?? 0 });
   }
@@ -51,6 +57,20 @@ function ProfilePage() {
   }, []);
 
   if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
+
+  if (path !== "/profile") return <Outlet />;
+
+  async function react(post: FeedPost, reaction: "like" | "dislike") {
+    if (!me) return;
+    if (post.myReaction === reaction) {
+      await supabase.from("post_reactions").delete().eq("post_id", post.id).eq("user_id", me);
+    } else {
+      await supabase
+        .from("post_reactions")
+        .upsert({ post_id: post.id, user_id: me, reaction }, { onConflict: "post_id,user_id" });
+    }
+    load();
+  }
 
   return (
     <div>
@@ -70,7 +90,11 @@ function ProfilePage() {
 
       <div className="px-4 -mt-10 relative">
         <Avatar url={profile.avatar_url} name={profile.nickname} size={80} className="ring-4 ring-background" />
-        <h1 className="text-xl font-bold mt-3">{profile.nickname}</h1>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <h1 className="text-xl font-bold">{profile.nickname}</h1>
+          <TrustBadge targetUserId={profile.id} interactive={false} />
+          <CreatorBadge fixedId={profile.fixed_id} />
+        </div>
         <p className="text-sm text-muted-foreground font-mono">#{profile.fixed_id}</p>
         {profile.bio && <p className="text-sm mt-2 whitespace-pre-wrap">{profile.bio}</p>}
         <div className="flex gap-4 mt-3 text-sm">
@@ -99,16 +123,22 @@ function ProfilePage() {
         ))}
       </div>
 
-      <ul>
-        {(tab === "posts" ? posts : comments).map((item) => (
-          <li key={item.id} className="px-4 py-3 border-b border-border">
-            <p className="text-sm whitespace-pre-wrap">{item.content}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {new Date(item.created_at).toLocaleString()}
-            </p>
-          </li>
-        ))}
-      </ul>
+      {tab === "posts" ? (
+        <ul>{posts.map((p) => <PostCard key={p.id} post={p} me={me} onReact={react} onDeleted={load} />)}</ul>
+      ) : (
+        <ul>
+          {comments.map((item) => (
+            <li key={item.id} className="border-b border-border">
+              <Link to="/post/$id" params={{ id: item.post_id }} className="block px-4 py-3 hover:bg-secondary/40">
+                <p className="text-sm whitespace-pre-wrap">{item.content}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date(item.created_at).toLocaleString()}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
