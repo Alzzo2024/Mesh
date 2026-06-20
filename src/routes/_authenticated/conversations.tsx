@@ -204,7 +204,7 @@ function ConvList() {
           />
           <button
             onClick={sendFriendRequest}
-            className="rounded-xl bg-primary text-primary-foreground px-4"
+            className="rounded-xl bg-primary text-[#1a1a1a] px-4"
             aria-label="add"
           >
             <UserPlus className="h-5 w-5" />
@@ -223,7 +223,7 @@ function ConvList() {
                   <div className="font-medium truncate">{p.profile?.nickname}</div>
                   <div className="text-xs text-muted-foreground">#{p.profile?.fixed_id}</div>
                 </div>
-                <button onClick={() => acceptFriend(p)} className="rounded-full bg-primary text-primary-foreground p-2">
+                <button onClick={() => acceptFriend(p)} className="rounded-full bg-primary text-[#1a1a1a] p-2">
                   <Check className="h-4 w-4" />
                 </button>
                 <button onClick={() => rejectFriend(p)} className="rounded-full bg-secondary p-2">
@@ -274,7 +274,7 @@ function ConvList() {
           <button
             onClick={createGroup}
             disabled={!groupName.trim() || groupSel.length === 0}
-            className="w-full rounded-xl bg-primary text-primary-foreground py-2.5 disabled:opacity-40"
+            className="w-full rounded-xl bg-primary text-[#1a1a1a] py-2.5 disabled:opacity-40"
           >
             {t("chats.create")}
           </button>
