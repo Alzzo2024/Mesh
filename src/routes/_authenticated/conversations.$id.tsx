@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { ArrowLeft, Send, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Send, Image as ImageIcon, X, Reply, Smile } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/conversations/$id")({
@@ -17,8 +17,11 @@ type Msg = {
   content: string | null;
   media_url: string | null;
   media_type: string | null;
+  reply_to: string | null;
   created_at: string;
 };
+
+type MessageReaction = { message_id: string; user_id: string; emoji: string };
 
 function ChatPage() {
   const { id } = Route.useParams();
@@ -27,7 +30,12 @@ function ChatPage() {
   const [conv, setConv] = useState<any>(null);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [reactions, setReactions] = useState<Record<string, MessageReaction[]>>({});
   const [text, setText] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedPreview, setSelectedPreview] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<Msg | null>(null);
+  const [activeMsg, setActiveMsg] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -60,11 +68,18 @@ function ChatPage() {
 
     const { data: msgs } = await supabase
       .from("messages")
-      .select("id, sender_id, content, media_url, media_type, created_at")
+      .select("id, sender_id, content, media_url, media_type, reply_to, created_at")
       .eq("conversation_id", id)
       .order("created_at", { ascending: true })
       .limit(500);
     setMessages((msgs as Msg[]) ?? []);
+
+    const messageIds = (msgs ?? []).map((m) => m.id);
+    const { data: rs } = await supabase
+      .from("message_reactions")
+      .select("message_id, user_id, emoji")
+      .in("message_id", messageIds.length ? messageIds : ["00000000-0000-0000-0000-000000000000"]);
+    setReactions(groupReactions((rs as MessageReaction[]) ?? []));
   }
 
   useEffect(() => {
@@ -78,6 +93,7 @@ function ChatPage() {
           setMessages((m) => [...m, payload.new as Msg]);
         },
       )
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" }, load)
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
@@ -90,26 +106,48 @@ function ChatPage() {
   }, [messages]);
 
   async function send() {
-    if (!text.trim() || !me) return;
+    if ((!text.trim() && !selectedFile) || !me) return;
     const content = text.trim();
     setText("");
+    let media_url: string | null = null;
+    let media_type: "image" | null = null;
+    if (selectedFile) {
+      const path = `${me}/${Date.now()}-${selectedFile.name}`;
+      const { error } = await supabase.storage.from("message-media").upload(path, selectedFile);
+      if (error) return toast.error(error.message);
+      media_url = `message-media/${path}`;
+      media_type = "image";
+    }
     const { error } = await supabase
       .from("messages")
-      .insert({ conversation_id: id, sender_id: me, content });
+      .insert({ conversation_id: id, sender_id: me, content, media_url, media_type, reply_to: replyTo?.id ?? null });
     if (error) toast.error(error.message);
+    clearSelectedImage();
+    setReplyTo(null);
   }
 
-  async function uploadImage(file: File) {
+  function chooseImage(file: File | undefined) {
+    if (!file) return;
+    clearSelectedImage();
+    setSelectedFile(file);
+    setSelectedPreview(URL.createObjectURL(file));
+  }
+
+  function clearSelectedImage() {
+    if (selectedPreview) URL.revokeObjectURL(selectedPreview);
+    setSelectedFile(null);
+    setSelectedPreview(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  async function reactToMessage(messageId: string, emoji: string) {
     if (!me) return;
-    const path = `${me}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("message-media").upload(path, file);
+    const { error } = await supabase
+      .from("message_reactions")
+      .upsert({ message_id: messageId, user_id: me, emoji }, { onConflict: "message_id,user_id" });
     if (error) return toast.error(error.message);
-    await supabase.from("messages").insert({
-      conversation_id: id,
-      sender_id: me,
-      media_url: `message-media/${path}`,
-      media_type: "image",
-    });
+    setActiveMsg(null);
+    load();
   }
 
   const title =
