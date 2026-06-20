@@ -14,7 +14,7 @@ function FollowersPage() {
   return <FollowList kind="followers" />;
 }
 
-export function FollowList({ kind }: { kind: "followers" | "following" }) {
+export function FollowList({ kind, fixedId }: { kind: "followers" | "following"; fixedId?: string }) {
   const { t } = useI18n();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,9 +25,23 @@ export function FollowList({ kind }: { kind: "followers" | "following" }) {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
+      let targetId = user.id;
+      if (fixedId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("fixed_id", fixedId.toUpperCase())
+          .maybeSingle();
+        if (!profile) {
+          setUsers([]);
+          setLoading(false);
+          return;
+        }
+        targetId = profile.id;
+      }
       const col = kind === "followers" ? "following_id" : "follower_id";
       const otherCol = kind === "followers" ? "follower_id" : "following_id";
-      const { data: rows } = await supabase.from("follows").select(otherCol).eq(col, user.id);
+      const { data: rows } = await supabase.from("follows").select(otherCol).eq(col, targetId);
       const ids = (rows ?? []).map((r: any) => r[otherCol]);
       if (ids.length === 0) {
         setUsers([]);
@@ -41,12 +55,16 @@ export function FollowList({ kind }: { kind: "followers" | "following" }) {
       setUsers(profs ?? []);
       setLoading(false);
     })();
-  }, [kind]);
+  }, [kind, fixedId]);
 
   return (
     <div>
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-3 py-3 flex items-center gap-2">
-        <Link to="/profile" className="p-2 -ml-1 rounded-full hover:bg-secondary">
+        <Link
+          to={fixedId ? "/u/$fixedId" : "/profile"}
+          params={fixedId ? { fixedId } : undefined}
+          className="p-2 -ml-1 rounded-full hover:bg-secondary"
+        >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="font-semibold">{t(`follow.${kind}`)}</h1>
