@@ -19,6 +19,7 @@ function ProfilePage() {
   const { t } = useI18n();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [profile, setProfile] = useState<any>(null);
+  const [loaded, setLoaded] = useState(false);
   const [me, setMe] = useState<string | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [comments, setComments] = useState<any[]>([]);
@@ -29,7 +30,10 @@ function ProfilePage() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoaded(true);
+      return;
+    }
     setMe(user.id);
     const p = await ensureMyProfile(user);
     setProfile(p);
@@ -51,6 +55,7 @@ function ProfilePage() {
     setPosts(psRes.data?.length ? await hydratePosts(psRes.data as any, user.id) : []);
     setComments(csRes.data ?? []);
     setCounts({ followers: fol.count ?? 0, following: fwg.count ?? 0 });
+    setLoaded(true);
   }
 
   useEffect(() => {
@@ -59,7 +64,8 @@ function ProfilePage() {
 
   if (path !== "/profile") return <Outlet />;
 
-  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
+  if (!loaded) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
+  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("error.generic")}</p>;
 
   async function react(post: FeedPost, reaction: "like" | "dislike") {
     if (!me) return;

@@ -17,6 +17,7 @@ function SettingsPage() {
   const { t, locale, setLocale } = useI18n();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
+  const [loaded, setLoaded] = useState(false);
   const [nickname, setNickname] = useState("");
   const [bio, setBio] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
@@ -25,15 +26,24 @@ function SettingsPage() {
   const bannerRef = useRef<HTMLInputElement>(null);
 
   async function load() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    const data = await ensureMyProfile(user);
-    setProfile(data);
-    setNickname(data?.nickname ?? "");
-    setBio(data?.bio ?? "");
-    setIsPrivate(!!data?.is_private);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        navigate({ to: "/auth", replace: true });
+        return;
+      }
+      const data = await ensureMyProfile(user);
+      setProfile(data);
+      setNickname(data?.nickname ?? "");
+      setBio(data?.bio ?? "");
+      setIsPrivate(!!data?.is_private);
+    } catch (error: any) {
+      toast.error(error.message ?? t("error.generic"));
+    } finally {
+      setLoaded(true);
+    }
   }
 
   useEffect(() => {
@@ -92,7 +102,8 @@ function SettingsPage() {
     navigate({ to: "/auth", replace: true });
   }
 
-  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
+  if (!loaded) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
+  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("error.generic")}</p>;
 
   return (
     <div>
