@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, MessageCircle, ThumbsDown, Send, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { SignedImage } from "@/components/SignedImage";
-import { tokenizeHashtags } from "@/lib/hashtags";
+import { extractHashtags, tokenizeHashtags } from "@/lib/hashtags";
+import { TrustBadge } from "@/components/TrustBadge";
 import { toast } from "sonner";
 
 export type FeedProfile = {
@@ -13,6 +14,7 @@ export type FeedProfile = {
   fixed_id: string;
   nickname: string;
   avatar_url: string | null;
+  trust_score?: number;
 };
 
 export type FeedPost = {
@@ -75,6 +77,9 @@ export function PostCard({
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editText, setEditText] = useState(post.content);
 
   async function loadComments() {
     const { data } = await supabase
@@ -88,7 +93,10 @@ export function PostCard({
       .from("profiles")
       .select("id, nickname, fixed_id, avatar_url")
       .in("id", ids);
-    const map = new Map((profiles ?? []).map((p) => [p.id, p as FeedProfile]));
+    const trustScores = await fetchTrustScores(ids);
+    const map = new Map(
+      (profiles ?? []).map((p) => [p.id, { ...(p as FeedProfile), trust_score: trustScores.get(p.id) ?? 0 }]),
+    );
     setComments(data.map((c) => ({ ...c, profile: map.get(c.user_id) })));
   }
 
@@ -119,6 +127,19 @@ export function PostCard({
     if (!confirm(t("feed.deletePostConfirm"))) return;
     const { error } = await supabase.from("posts").delete().eq("id", post.id);
     if (error) return toast.error(error.message);
+    onDeleted?.();
+  }
+
+  async function saveEdit() {
+    const content = editText.trim();
+    if (!content) return;
+    const { error } = await supabase
+      .from("posts")
+      .update({ content, hashtags: extractHashtags(content) })
+      .eq("id", post.id);
+    if (error) return toast.error(error.message);
+    setEditing(false);
+    setMenuOpen(false);
     onDeleted?.();
   }
 
