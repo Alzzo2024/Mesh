@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -23,6 +23,7 @@ type ConvRow = {
 function ConvList() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const path = useRouterState({ select: (s) => s.location.pathname });
   const [me, setMe] = useState<string | null>(null);
   const [convs, setConvs] = useState<ConvRow[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
@@ -183,6 +184,8 @@ function ConvList() {
     setGroupSel([]);
     navigate({ to: "/conversations/$id", params: { id: conv.id } });
   }
+
+  if (path !== "/conversations") return <Outlet />;
 
   return (
     <div>
