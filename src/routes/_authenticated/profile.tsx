@@ -56,9 +56,9 @@ function ProfilePage() {
     load();
   }, []);
 
-  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
-
   if (path !== "/profile") return <Outlet />;
+
+  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
 
   async function react(post: FeedPost, reaction: "like" | "dislike") {
     if (!me) return;

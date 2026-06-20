@@ -86,8 +86,9 @@ function UserProfilePage() {
     load();
   }
 
-  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
   if (path !== `/u/${fixedId}`) return <Outlet />;
+
+  if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
 
   return (
     <div>
