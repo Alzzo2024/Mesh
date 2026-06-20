@@ -293,3 +293,21 @@ function MediaImg({ path }: { path: string }) {
   // eslint-disable-next-line jsx-a11y/alt-text
   return <img src={url} className="rounded-lg max-w-full mb-1" />;
 }
+
+function ReplyPreview({
+  message,
+  profiles,
+  mine,
+}: {
+  message?: Msg;
+  profiles: Record<string, any>;
+  mine: boolean;
+}) {
+  if (!message) return null;
+  return (
+    <div className={`mb-1 rounded-lg border-l-2 px-2 py-1 text-xs ${mine ? "border-background/50 bg-background/10" : "border-primary bg-background/20"}`}>
+      <div className="font-medium opacity-80">{profiles[message.sender_id]?.nickname ?? "Mesh"}</div>
+      <div className="line-clamp-2 opacity-70">{message.content || "📷"}</div>
+    </div>
+  );
+}
