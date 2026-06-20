@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n, LOCALES, type Locale } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { SignedImage } from "@/components/SignedImage";
+import { ensureMyProfile } from "@/lib/profile";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/profile/settings")({
@@ -28,7 +29,7 @@ function SettingsPage() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    const data = await ensureMyProfile(user);
     setProfile(data);
     setNickname(data?.nickname ?? "");
     setBio(data?.bio ?? "");

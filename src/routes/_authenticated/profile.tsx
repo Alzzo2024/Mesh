@@ -8,6 +8,7 @@ import { SignedImage } from "@/components/SignedImage";
 import { CreatorBadge } from "@/components/CreatorBadge";
 import { TrustBadge } from "@/components/TrustBadge";
 import { PostCard, hydratePosts, type FeedPost } from "@/components/PostCard";
+import { ensureMyProfile } from "@/lib/profile";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "Mesh — Perfil" }] }),
@@ -30,7 +31,7 @@ function ProfilePage() {
     } = await supabase.auth.getUser();
     if (!user) return;
     setMe(user.id);
-    const { data: p } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    const p = await ensureMyProfile(user);
     setProfile(p);
 
     const [psRes, csRes, fol, fwg] = await Promise.all([

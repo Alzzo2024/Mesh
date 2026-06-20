@@ -3,6 +3,7 @@ import { MessageCircle, Search, ShieldCheck, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MeshWord } from "@/components/Logo";
 import { useI18n } from "@/lib/i18n";
+import { ensureMyProfile } from "@/lib/profile";
 
 export function OnboardingOverlay() {
   const { t } = useI18n();
@@ -16,11 +17,7 @@ export function OnboardingOverlay() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user || !active) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, onboarded_at")
-        .eq("id", user.id)
-        .maybeSingle();
+      const data = await ensureMyProfile(user);
       if (!active || !data) return;
       setProfileId(data.id);
       setOpen(!data.onboarded_at);
