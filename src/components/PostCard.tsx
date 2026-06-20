@@ -170,28 +170,79 @@ export function PostCard({
           <Avatar url={post.profile?.avatar_url} name={post.profile?.nickname} />
         </Link>
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
-            <Link
-              to="/u/$fixedId"
-              params={{ fixedId: post.profile?.fixed_id ?? "" }}
-              className="font-medium text-foreground truncate hover:underline"
-            >
-              {post.profile?.nickname ?? "?"}
-            </Link>
-            <span className="text-xs text-muted-foreground">#{post.profile?.fixed_id}</span>
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/u/$fixedId"
+                  params={{ fixedId: post.profile?.fixed_id ?? "" }}
+                  className="truncate font-medium text-foreground hover:underline"
+                >
+                  {post.profile?.nickname ?? "?"}
+                </Link>
+                <TrustBadge
+                  targetUserId={post.user_id}
+                  initialScore={post.profile?.trust_score ?? 0}
+                  interactive={me !== post.user_id}
+                  compact
+                />
+              </div>
+              <span className="block text-xs text-muted-foreground">#{post.profile?.fixed_id}</span>
+            </div>
             {me === post.user_id && (
-              <button
-                onClick={deletePost}
-                className="ml-auto p-1 text-muted-foreground hover:text-destructive"
-                aria-label={t("feed.delete")}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="relative ml-auto">
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="p-1 text-muted-foreground hover:text-foreground"
+                  aria-label={t("feed.actions")}
+                >
+                  <MoreHorizontal className="h-5 w-5" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 top-7 z-20 min-w-36 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                    <button
+                      onClick={() => {
+                        setEditing(true);
+                        setMenuOpen(false);
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                    >
+                      <Pencil className="h-4 w-4" /> {t("feed.edit")}
+                    </button>
+                    <button
+                      onClick={deletePost}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-secondary"
+                    >
+                      <Trash2 className="h-4 w-4" /> {t("feed.delete")}
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
-          <p className="mt-1 whitespace-pre-wrap break-words">
-            <HashtagText text={post.content} />
-          </p>
+          {editing ? (
+            <div className="mt-2 space-y-2">
+              <textarea
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                maxLength={500}
+                rows={3}
+                className="w-full resize-none rounded-xl border border-border bg-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setEditing(false)} className="rounded-full bg-secondary px-3 py-1.5 text-sm">
+                  <X className="inline h-3.5 w-3.5" /> {t("common.cancel")}
+                </button>
+                <button onClick={saveEdit} className="rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-[#1a1a1a]">
+                  {t("settings.save")}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link to="/post/$id" params={{ id: post.id }} className="mt-1 block whitespace-pre-wrap break-words hover:opacity-90">
+              <HashtagText text={post.content} />
+            </Link>
+          )}
           {post.image_path && (
             <SignedImage
               path={post.image_path}
