@@ -23,6 +23,20 @@ type Msg = {
 
 type MessageReaction = { message_id: string; user_id: string; emoji: string };
 
+function groupReactions(rows: MessageReaction[]) {
+  return rows.reduce<Record<string, MessageReaction[]>>((acc, row) => {
+    acc[row.message_id] = [...(acc[row.message_id] ?? []), row];
+    return acc;
+  }, {});
+}
+
+function countEmojis(rows: MessageReaction[]) {
+  return rows.reduce<Record<string, number>>((acc, row) => {
+    acc[row.emoji] = (acc[row.emoji] ?? 0) + 1;
+    return acc;
+  }, {});
+}
+
 function ChatPage() {
   const { id } = Route.useParams();
   const { t } = useI18n();
