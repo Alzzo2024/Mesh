@@ -376,11 +376,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_user_content: { Args: { _target: string }; Returns: boolean }
       create_group_conversation: {
         Args: { _member_ids: string[]; _name: string }
         Returns: string
       }
       generate_fixed_id: { Args: never; Returns: string }
+      get_my_birth_date: { Args: never; Returns: string }
       get_or_create_direct_conversation: {
         Args: { _other_user: string }
         Returns: string
