@@ -94,7 +94,7 @@ function ConvList() {
 
     const { data: fr } = await supabase
       .from("friendships")
-      .select("*")
+      .select("id, requester_id, addressee_id, status")
       .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
     const friendIds = (fr ?? [])
       .filter((f) => f.status === "accepted")
