@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Flame, Search, MessageCircle, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { Logo } from "@/components/Logo";
+import { MeshWord } from "@/components/Logo";
 
 export function BottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -44,7 +44,7 @@ export function BottomNav() {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex fixed top-0 left-0 h-screen w-60 z-40 border-r border-border bg-background/95 backdrop-blur flex-col py-6 px-4">
         <Link to="/feed" className="px-3 mb-8">
-          <Logo className="text-3xl" />
+          <MeshWord className="text-3xl" />
         </Link>
         <ul className="flex flex-col gap-1">
           {items.map(({ to, icon: Icon, label }) => {
