@@ -122,15 +122,6 @@ function ConvList() {
 
   useEffect(() => {
     refresh();
-    const ch = supabase
-      .channel("convs")
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "friendships" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "conversation_members" }, refresh)
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -150,11 +141,13 @@ function ConvList() {
   }
 
   async function acceptFriend(f: any) {
-    await supabase.from("friendships").update({ status: "accepted" }).eq("id", f.id);
+    const { error } = await supabase.from("friendships").update({ status: "accepted" }).eq("id", f.id);
+    if (error) return toast.error(error.message);
     refresh();
   }
   async function rejectFriend(f: any) {
-    await supabase.from("friendships").delete().eq("id", f.id);
+    const { error } = await supabase.from("friendships").delete().eq("id", f.id);
+    if (error) return toast.error(error.message);
     refresh();
   }
 
