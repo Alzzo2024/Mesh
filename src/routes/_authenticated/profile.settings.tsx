@@ -200,7 +200,7 @@ function SettingsPage() {
               <span className="text-xl">{currentLocale?.flag}</span>
               <span>{currentLocale?.label}</span>
             </span>
-            <span className="text-xs text-muted-foreground">{t("common.cancel") /* placeholder */ && "›"}</span>
+            <span className="text-xs text-muted-foreground">›</span>
           </button>
         </Field>
 
