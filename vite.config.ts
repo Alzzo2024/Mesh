@@ -8,14 +8,7 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { 
-      entry: "server" 
-    },
+    server: { entry: "server" },
   },
-  // Passamos as configurações específicas de ambiente dentro do bloco que o Lovable permite
-  vite: {
-    nitro: process.env.VERCEL ? { preset: "vercel" } : true
-  }
+  nitro: process.env.VERCEL ? { preset: "vercel" } : true,
 });
