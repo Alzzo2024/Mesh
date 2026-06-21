@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Locale = "pt-PT" | "pt-BR" | "en-GB" | "en-US";
+export type Locale = "pt-PT" | "pt-BR" | "en-GB" | "en-US" | "fr-FR" | "fr-CA";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
-  { code: "pt-PT", label: "Português (Portugal)", flag: "🇵🇹" },
+  { code: "pt-PT", label: "Português", flag: "🇵🇹" },
   { code: "pt-BR", label: "Português (Brasil)", flag: "🇧🇷" },
-  { code: "en-GB", label: "English (UK)", flag: "🇬🇧" },
+  { code: "en-GB", label: "English", flag: "🇬🇧" },
   { code: "en-US", label: "English (US)", flag: "🇺🇸" },
+  { code: "fr-FR", label: "Français", flag: "🇫🇷" },
+  { code: "fr-CA", label: "Français (Canada)", flag: "🇨🇦" },
 ];
 
 type Dict = Record<string, string>;
