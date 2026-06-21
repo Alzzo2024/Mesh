@@ -1,12 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Locale = "pt-PT" | "pt-BR" | "en-GB" | "en-US";
+export type Locale = "pt-PT" | "pt-BR" | "en-GB" | "en-US" | "fr-FR" | "fr-CA";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
-  { code: "pt-PT", label: "Português (Portugal)", flag: "🇵🇹" },
+  { code: "pt-PT", label: "Português", flag: "🇵🇹" },
   { code: "pt-BR", label: "Português (Brasil)", flag: "🇧🇷" },
-  { code: "en-GB", label: "English (UK)", flag: "🇬🇧" },
+  { code: "en-GB", label: "English", flag: "🇬🇧" },
   { code: "en-US", label: "English (US)", flag: "🇺🇸" },
+  { code: "fr-FR", label: "Français", flag: "🇫🇷" },
+  { code: "fr-CA", label: "Français (Canada)", flag: "🇨🇦" },
 ];
 
 type Dict = Record<string, string>;
@@ -220,11 +222,58 @@ const enGB: Dict = {
 
 const enUS: Dict = { ...enGB };
 
+const frFR: Dict = {
+  ...enGB,
+  "nav.feed": "Fil",
+  "nav.search": "Rechercher",
+  "nav.chats": "Discussions",
+  "nav.profile": "Profil",
+  "auth.signin": "Se connecter",
+  "auth.signup": "Créer un compte",
+  "auth.email": "E-mail",
+  "auth.password": "Mot de passe",
+  "auth.nickname": "Nom d'utilisateur",
+  "auth.toggle.toSignup": "Pas de compte ? En créer un",
+  "auth.toggle.toSignin": "Déjà un compte ? Se connecter",
+  "auth.welcome": "Bienvenue sur",
+  "feed.placeholder": "Quoi de neuf ?",
+  "feed.post": "Publier",
+  "feed.empty": "Aucune publication. Sois le premier !",
+  "feed.newPost": "Nouvelle publication",
+  "search.placeholder": "Rechercher des personnes, publications ou #hashtags",
+  "search.people": "Personnes",
+  "search.posts": "Publications",
+  "chats.title": "Discussions",
+  "chats.addFriend": "Ajouter un ami",
+  "chats.friends": "Amis",
+  "chats.newGroup": "Nouveau groupe",
+  "chats.groupName": "Nom du groupe",
+  "chats.create": "Créer",
+  "profile.posts": "Publications",
+  "profile.comments": "Commentaires",
+  "profile.settings": "Paramètres",
+  "profile.editAppearance": "Modifier le profil",
+  "settings.title": "Paramètres",
+  "settings.nickname": "Nom d'utilisateur",
+  "settings.bio": "Bio",
+  "settings.language": "Langue",
+  "settings.save": "Enregistrer",
+  "settings.logout": "Se déconnecter",
+  "settings.deleteAccount": "Supprimer le compte",
+  "common.cancel": "Annuler",
+  "common.back": "Retour",
+  "common.loading": "Chargement…",
+};
+
+const frCA: Dict = { ...frFR };
+
 const DICTS: Record<Locale, Dict> = {
   "pt-PT": ptPT,
   "pt-BR": ptBR,
   "en-GB": enGB,
   "en-US": enUS,
+  "fr-FR": frFR,
+  "fr-CA": frCA,
 };
 
 type I18nCtx = { locale: Locale; setLocale: (l: Locale) => void; t: (k: string) => string };

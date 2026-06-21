@@ -376,6 +376,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_group_conversation: {
+        Args: { _member_ids: string[]; _name: string }
+        Returns: string
+      }
       generate_fixed_id: { Args: never; Returns: string }
       get_or_create_direct_conversation: {
         Args: { _other_user: string }
