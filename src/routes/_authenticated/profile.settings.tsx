@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Trash2, Camera } from "lucide-react";
+import { ArrowLeft, LogOut, Trash2, Camera, Globe, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, LOCALES, type Locale } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -22,8 +22,10 @@ function SettingsPage() {
   const [bio, setBio] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
+  const currentLocale = LOCALES.find((l) => l.code === locale);
 
   async function load() {
     try {
@@ -188,22 +190,52 @@ function SettingsPage() {
         </label>
 
         <Field label={t("settings.language")}>
-          <div className="grid grid-cols-2 gap-2">
-            {LOCALES.map((l) => (
-              <button
-                key={l.code}
-                type="button"
-                onClick={() => setLocale(l.code as Locale)}
-                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm ${
-                  locale === l.code ? "border-primary bg-primary/10" : "border-border"
-                }`}
-              >
-                <span className="text-xl">{l.flag}</span>
-                <span className="truncate">{l.label}</span>
-              </button>
-            ))}
-          </div>
+          <button
+            type="button"
+            onClick={() => setLangOpen(true)}
+            className="w-full flex items-center justify-between rounded-xl border border-border bg-input px-4 py-2.5"
+          >
+            <span className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xl">{currentLocale?.flag}</span>
+              <span>{currentLocale?.label}</span>
+            </span>
+            <span className="text-xs text-muted-foreground">{t("common.cancel") /* placeholder */ && "›"}</span>
+          </button>
         </Field>
+
+        {langOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setLangOpen(false)}
+          >
+            <div
+              className="w-full md:max-w-sm rounded-t-2xl md:rounded-2xl bg-popover border border-border p-2 max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-3 py-2 text-sm font-medium text-muted-foreground">
+                {t("settings.language")}
+              </div>
+              {LOCALES.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => {
+                    setLocale(l.code as Locale);
+                    setLangOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 rounded-xl px-3 py-3 text-left ${
+                    locale === l.code ? "bg-primary/10 text-primary" : "hover:bg-secondary"
+                  }`}
+                >
+                  <span className="text-2xl">{l.flag}</span>
+                  <span className="flex-1">{l.label}</span>
+                  {locale === l.code && <Check className="h-4 w-4" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button
           onClick={save}

@@ -168,21 +168,15 @@ function ConvList() {
 
   async function createGroup() {
     if (!me || !groupName.trim() || groupSel.length === 0) return;
-    const { data: conv, error } = await supabase
-      .from("conversations")
-      .insert({ type: "group", name: groupName.trim(), created_by: me })
-      .select("id")
-      .single();
-    if (error || !conv) return toast.error(error?.message ?? "Erro");
-    const members = [
-      { conversation_id: conv.id, user_id: me, is_admin: true },
-      ...groupSel.map((uid) => ({ conversation_id: conv.id, user_id: uid, is_admin: false })),
-    ];
-    await supabase.from("conversation_members").insert(members);
+    const { data, error } = await supabase.rpc("create_group_conversation", {
+      _name: groupName.trim(),
+      _member_ids: groupSel,
+    });
+    if (error || !data) return toast.error(error?.message ?? "Erro");
     setGroupOpen(false);
     setGroupName("");
     setGroupSel([]);
-    navigate({ to: "/conversations/$id", params: { id: conv.id } });
+    navigate({ to: "/conversations/$id", params: { id: data as string } });
   }
 
   if (path !== "/conversations") return <Outlet />;
