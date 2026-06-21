@@ -9,6 +9,7 @@ import { PostCard, hydratePosts, type FeedPost } from "@/components/PostCard";
 import { CreatorBadge } from "@/components/CreatorBadge";
 import { TrustBadge } from "@/components/TrustBadge";
 import { useI18n } from "@/lib/i18n";
+import { PROFILE_SAFE_SELECT } from "@/lib/profile";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/u/$fixedId")({
@@ -34,7 +35,7 @@ function UserProfilePage() {
 
     const { data: p } = await supabase
       .from("profiles")
-      .select("*")
+      .select(PROFILE_SAFE_SELECT)
       .eq("fixed_id", fixedId.toUpperCase())
       .maybeSingle();
     if (!p) return;

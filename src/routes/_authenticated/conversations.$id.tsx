@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { ArrowLeft, Send, Image as ImageIcon, X, Reply } from "lucide-react";
+import { resolveSignedUrl } from "@/components/SignedImage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/conversations/$id")({
@@ -282,12 +283,11 @@ function ChatPage() {
 function MediaImg({ path }: { path: string }) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
-    const slash = path.indexOf("/");
-    const bucket = path.slice(0, slash);
-    const obj = path.slice(slash + 1);
-    supabase.storage.from(bucket).createSignedUrl(obj, 3600).then(({ data }) => {
-      setUrl(data?.signedUrl ?? null);
-    });
+    let alive = true;
+    resolveSignedUrl(path).then((signedUrl) => alive && setUrl(signedUrl));
+    return () => {
+      alive = false;
+    };
   }, [path]);
   if (!url) return null;
   // eslint-disable-next-line jsx-a11y/alt-text

@@ -29,15 +29,6 @@ function FeedPage() {
 
   useEffect(() => {
     refresh();
-    const ch = supabase
-      .channel("feed")
-      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "post_reactions" }, refresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, refresh)
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
