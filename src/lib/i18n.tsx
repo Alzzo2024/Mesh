@@ -2,14 +2,14 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type Locale = "pt-PT" | "pt-BR" | "es-ES" | "fr-FR" | "fr-CA" | "de-DE" | "it-IT" | "en-GB" | "en-US";
 
-export const APP_VERSION = "V.2.0.1";
+export const APP_VERSION = "V.1.1.0";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
   { code: "pt-PT", label: "Português", flag: "🇵🇹" },
-  { code: "pt-BR", label: "Português (Brasil)", flag: "🇧🇷" },
+  { code: "pt-BR", label: "Português (BR)", flag: "🇧🇷" },
   { code: "es-ES", label: "Castellano", flag: "🇪🇸" },
   { code: "fr-FR", label: "Français", flag: "🇫🇷" },
-  { code: "fr-CA", label: "Français (Canada)", flag: "🇨🇦" },
+  { code: "fr-CA", label: "Français (CA)", flag: "🇨🇦" },
   { code: "de-DE", label: "Deutsch", flag: "🇩🇪" },
   { code: "it-IT", label: "Italiano", flag: "🇮🇹" },
   { code: "en-GB", label: "English", flag: "🇬🇧" },
