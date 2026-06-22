@@ -30,7 +30,6 @@ function ProfilePage() {
   const [counts, setCounts] = useState({ followers: 0, following: 0 });
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const galleryInput = useRef<HTMLInputElement>(null);
 
   async function load() {
     const {
