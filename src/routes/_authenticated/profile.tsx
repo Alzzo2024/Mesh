@@ -1,6 +1,9 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Settings } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Settings, Plus } from "lucide-react";
+import { toast } from "sonner";
+import { ImageLightbox } from "@/components/ImageLightbox";
+import { resolveSignedUrl } from "@/components/SignedImage";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -23,8 +26,11 @@ function ProfilePage() {
   const [me, setMe] = useState<string | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [comments, setComments] = useState<any[]>([]);
-  const [tab, setTab] = useState<"posts" | "comments">("posts");
+  const [tab, setTab] = useState<"posts" | "gallery" | "comments">("posts");
   const [counts, setCounts] = useState({ followers: 0, following: 0 });
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
 
   async function load() {
     const {
