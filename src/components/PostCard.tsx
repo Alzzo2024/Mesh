@@ -92,6 +92,13 @@ export function PostCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(post.content);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  async function openLightbox() {
+    if (!post.image_path) return;
+    const url = await resolveSignedUrl(post.image_path);
+    if (url) setLightbox(url);
+  }
 
   async function loadComments() {
     const { data } = await supabase
