@@ -59,22 +59,7 @@ function ProfilePage() {
     setPosts(psRes.data?.length ? await hydratePosts(psRes.data as any, user.id) : []);
     setComments(csRes.data ?? []);
     setCounts({ followers: fol.count ?? 0, following: fwg.count ?? 0 });
-    const gallery: string[] = ((p as any)?.gallery ?? []) as string[];
-    const urls = await Promise.all(gallery.map((g) => resolveSignedUrl(g)));
-    setGalleryUrls(urls.filter((u): u is string => !!u));
     setLoaded(true);
-  }
-
-  async function uploadGallery(file: File | undefined) {
-    if (!file || !profile) return;
-    const path = `${profile.id}/gallery/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file);
-    if (error) return toast.error(error.message);
-    const value = `avatars/${path}`;
-    const next = [...((profile as any).gallery ?? []), value];
-    const { error: e2 } = await supabase.from("profiles").update({ gallery: next } as any).eq("id", profile.id);
-    if (e2) return toast.error(e2.message);
-    load();
   }
 
   useEffect(() => {
