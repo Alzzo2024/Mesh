@@ -61,7 +61,22 @@ function ProfilePage() {
     setPosts(psRes.data?.length ? await hydratePosts(psRes.data as any, user.id) : []);
     setComments(csRes.data ?? []);
     setCounts({ followers: fol.count ?? 0, following: fwg.count ?? 0 });
+    const gallery: string[] = (p?.gallery ?? []) as string[];
+    const urls = await Promise.all(gallery.map((g) => resolveSignedUrl(g)));
+    setGalleryUrls(urls.filter((u): u is string => !!u));
     setLoaded(true);
+  }
+
+  async function uploadGallery(file: File | undefined) {
+    if (!file || !profile) return;
+    const path = `${profile.id}/gallery/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, file);
+    if (error) return toast.error(error.message);
+    const value = `avatars/${path}`;
+    const next = [...(profile.gallery ?? []), value];
+    const { error: e2 } = await supabase.from("profiles").update({ gallery: next }).eq("id", profile.id);
+    if (e2) return toast.error(e2.message);
+    load();
   }
 
   useEffect(() => {
@@ -123,7 +138,7 @@ function ProfilePage() {
       </div>
 
       <div className="flex border-b border-border mt-4">
-        {(["posts", "comments"] as const).map((k) => (
+        {(["posts", "gallery", "comments"] as const).map((k) => (
           <button
             key={k}
             onClick={() => setTab(k)}
@@ -136,9 +151,37 @@ function ProfilePage() {
         ))}
       </div>
 
-      {tab === "posts" ? (
+      {tab === "posts" && (
         <ul>{posts.map((p) => <PostCard key={p.id} post={p} me={me} onReact={react} onDeleted={load} />)}</ul>
-      ) : (
+      )}
+
+      {tab === "gallery" && (
+        <div className="p-4">
+          <button
+            onClick={() => galleryInput.current?.click()}
+            className="mb-4 flex items-center gap-2 rounded-full bg-primary text-[#1a1a1a] px-4 py-2 text-sm font-medium"
+          >
+            <Plus className="h-4 w-4" /> {t("profile.addToGallery")}
+          </button>
+          <input
+            ref={galleryInput}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => uploadGallery(e.target.files?.[0])}
+          />
+          <div className="grid grid-cols-3 gap-1">
+            {galleryUrls.map((u, i) => (
+              <button key={i} onClick={() => setLightbox(u)} className="aspect-square overflow-hidden rounded-lg bg-secondary">
+                <img src={u} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+          {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}
+        </div>
+      )}
+
+      {tab === "comments" && (
         <ul>
           {comments.map((item) => (
             <li key={item.id} className="border-b border-border">
