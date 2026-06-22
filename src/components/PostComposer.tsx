@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { X, Image as ImageIcon } from "lucide-react";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { extractHashtags } from "@/lib/hashtags";
@@ -124,6 +125,7 @@ export function PostComposer({
               className="hidden"
               onChange={(e) => pickFile(e.target.files?.[0])}
             />
+            <EmojiPicker onPick={(e) => setText((t) => t + e)} />
             <span className="text-xs text-muted-foreground">{text.length}/500</span>
           </div>
           <button
