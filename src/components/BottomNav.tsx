@@ -1,39 +1,45 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Flame, Search, MessageCircle, User } from "lucide-react";
+import { Flame, Search, MessageCircle, User, Bell } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
+import { useUnreadCounts } from "@/lib/use-unread";
 
 export function BottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { t } = useI18n();
+  const unread = useUnreadCounts();
 
   const items = [
-    { to: "/feed", icon: Flame, label: t("nav.feed") },
-    { to: "/search", icon: Search, label: t("nav.search") },
-    { to: "/conversations", icon: MessageCircle, label: t("nav.chats") },
-    { to: "/profile", icon: User, label: t("nav.profile") },
+    { to: "/feed", icon: Flame, label: t("nav.feed"), dot: 0 },
+    { to: "/search", icon: Search, label: t("nav.search"), dot: 0 },
+    { to: "/conversations", icon: MessageCircle, label: t("nav.chats"), dot: unread.messages },
+    { to: "/notifications", icon: Bell, label: t("nav.notifications"), dot: unread.notifications },
+    { to: "/profile", icon: User, label: t("nav.profile"), dot: 0 },
   ] as const;
 
   return (
     <>
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — icons only */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-background/95 backdrop-blur"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <ul className="mx-auto max-w-xl grid grid-cols-4">
-          {items.map(({ to, icon: Icon, label }) => {
+        <ul className="mx-auto max-w-xl grid grid-cols-5">
+          {items.map(({ to, icon: Icon, label, dot }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
               <li key={to}>
                 <Link
                   to={to}
-                  className={`flex flex-col items-center justify-center gap-1 py-2.5 text-xs ${
+                  aria-label={label}
+                  className={`relative flex items-center justify-center py-3 ${
                     active ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{label}</span>
+                  <Icon className="h-6 w-6" />
+                  {dot > 0 && (
+                    <span className="absolute top-2 right-[calc(50%-14px)] h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />
+                  )}
                 </Link>
               </li>
             );
@@ -47,19 +53,22 @@ export function BottomNav() {
           <MeshWord className="text-3xl" />
         </Link>
         <ul className="flex flex-col gap-1">
-          {items.map(({ to, icon: Icon, label }) => {
+          {items.map(({ to, icon: Icon, label, dot }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
               <li key={to}>
                 <Link
                   to={to}
-                  className={`flex items-center gap-3 rounded-full px-4 py-3 text-base transition-colors ${
-                    active
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-foreground hover:bg-secondary"
+                  className={`relative flex items-center gap-3 rounded-full px-4 py-3 text-base transition-colors ${
+                    active ? "bg-primary/10 text-primary font-medium" : "text-foreground hover:bg-secondary"
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <span className="relative">
+                    <Icon className="h-5 w-5" />
+                    {dot > 0 && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background" />
+                    )}
+                  </span>
                   <span>{label}</span>
                 </Link>
               </li>

@@ -4,9 +4,11 @@ import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil,
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { SignedImage } from "@/components/SignedImage";
+import { SignedImage, resolveSignedUrl } from "@/components/SignedImage";
 import { extractHashtags, tokenizeHashtags } from "@/lib/hashtags";
 import { TrustBadge } from "@/components/TrustBadge";
+import { ImageLightbox } from "@/components/ImageLightbox";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
 
 export type FeedProfile = {
@@ -90,6 +92,13 @@ export function PostCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(post.content);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  async function openLightbox() {
+    if (!post.image_path) return;
+    const url = await resolveSignedUrl(post.image_path);
+    if (url) setLightbox(url);
+  }
 
   async function loadComments() {
     const { data } = await supabase
@@ -247,11 +256,14 @@ export function PostCard({
             {new Date(post.created_at).toLocaleString()}
           </Link>
           {post.image_path && (
-            <SignedImage
-              path={post.image_path}
-              className="mt-3 rounded-xl max-h-96 w-full object-cover border border-border"
-            />
+            <button type="button" onClick={openLightbox} className="mt-3 block w-full">
+              <SignedImage
+                path={post.image_path}
+                className="rounded-xl max-h-96 w-full object-cover border border-border cursor-zoom-in"
+              />
+            </button>
           )}
+          {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}
 
           <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
             <button
@@ -291,7 +303,7 @@ export function PostCard({
                   </button>
                 </p>
               )}
-              <div className="flex gap-2">
+              <div className="flex items-center gap-1">
                 <input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
@@ -299,6 +311,7 @@ export function PostCard({
                   placeholder={replyTo ? t("feed.replyPlaceholder") : t("feed.commentPlaceholder")}
                   className="flex-1 bg-input border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+                <EmojiPicker onPick={(e) => setText((t) => t + e)} />
                 <button
                   onClick={sendComment}
                   className="rounded-full bg-primary text-[#1a1a1a] p-2"
@@ -408,9 +421,7 @@ export async function loadFeed(userId: string, postIds?: string[]): Promise<Feed
 
   const hydrated = await hydratePosts(posts as any, userId);
   return hydrated.sort(
-    (a, b) =>
-      (b.profile?.trust_score ?? 0) - (a.profile?.trust_score ?? 0) ||
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
 }
 

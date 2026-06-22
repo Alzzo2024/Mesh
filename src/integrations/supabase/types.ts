@@ -61,18 +61,21 @@ export type Database = {
           conversation_id: string
           is_admin: boolean
           joined_at: string
+          last_read_at: string
           user_id: string
         }
         Insert: {
           conversation_id: string
           is_admin?: boolean
           joined_at?: string
+          last_read_at?: string
           user_id: string
         }
         Update: {
           conversation_id?: string
           is_admin?: boolean
           joined_at?: string
+          last_read_at?: string
           user_id?: string
         }
         Relationships: [
@@ -240,6 +243,54 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          comment_id: string | null
+          created_at: string
+          id: string
+          post_id: string | null
+          read_at: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          read_at?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          read_at?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_reactions: {
         Row: {
           created_at: string
@@ -310,6 +361,7 @@ export type Database = {
           birth_date: string | null
           created_at: string
           fixed_id: string
+          gallery: string[]
           id: string
           is_private: boolean
           language: string
@@ -324,6 +376,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           fixed_id: string
+          gallery?: string[]
           id: string
           is_private?: boolean
           language?: string
@@ -338,6 +391,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           fixed_id?: string
+          gallery?: string[]
           id?: string
           is_private?: boolean
           language?: string
@@ -376,11 +430,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_group_member: {
+        Args: { _conv: string; _user: string }
+        Returns: undefined
+      }
       can_view_user_content: { Args: { _target: string }; Returns: boolean }
       create_group_conversation: {
         Args: { _member_ids: string[]; _name: string }
         Returns: string
       }
+      delete_conversation: { Args: { _conv: string }; Returns: undefined }
+      delete_my_account: { Args: never; Returns: undefined }
       generate_fixed_id: { Args: never; Returns: string }
       get_my_birth_date: { Args: never; Returns: string }
       get_or_create_direct_conversation: {
@@ -391,11 +451,13 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      mark_conversation_read: { Args: { _conv: string }; Returns: undefined }
     }
     Enums: {
       conversation_type: "direct" | "group"
       friendship_status: "pending" | "accepted"
       message_media_type: "image" | "audio"
+      notification_type: "comment" | "like" | "dislike" | "follow"
       reaction_type: "like" | "dislike"
     }
     CompositeTypes: {
@@ -527,6 +589,7 @@ export const Constants = {
       conversation_type: ["direct", "group"],
       friendship_status: ["pending", "accepted"],
       message_media_type: ["image", "audio"],
+      notification_type: ["comment", "like", "dislike", "follow"],
       reaction_type: ["like", "dislike"],
     },
   },

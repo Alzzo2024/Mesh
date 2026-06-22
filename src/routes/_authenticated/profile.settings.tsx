@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, LogOut, Trash2, Camera, Globe, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useI18n, LOCALES, type Locale } from "@/lib/i18n";
+import { useI18n, LOCALES, APP_VERSION, type Locale } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { SignedImage } from "@/components/SignedImage";
 import { ensureMyProfile } from "@/lib/profile";
@@ -95,11 +95,8 @@ function SettingsPage() {
 
   async function deleteAccount() {
     if (!confirm(t("settings.deleteAccountConfirm"))) return;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("profiles").delete().eq("id", user.id);
+    const { error } = await supabase.rpc("delete_my_account");
+    if (error) return toast.error(error.message);
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
@@ -259,8 +256,12 @@ function SettingsPage() {
             <Trash2 className="h-4 w-4" /> {t("settings.deleteAccount")}
           </button>
         </div>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground pt-4">
+          Mesh · {t("settings.version")} {APP_VERSION}
+        </p>
       </div>
-    </div>
   );
 }
 

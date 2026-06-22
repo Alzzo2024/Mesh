@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { UserPlus, Users, Check, X } from "lucide-react";
+import { UserPlus, Users, Check, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/conversations")({
@@ -276,7 +276,7 @@ function ConvList() {
       ) : (
         <ul>
           {convs.map((c) => (
-            <li key={c.id}>
+            <li key={c.id} className="relative">
               <Link
                 to="/conversations/$id"
                 params={{ id: c.id }}
@@ -293,6 +293,19 @@ function ConvList() {
                   <div className="text-xs text-muted-foreground truncate">{c.lastMessage}</div>
                 </div>
               </Link>
+              <button
+                onClick={async (e) => {
+                  e.preventDefault();
+                  if (!confirm(t("chats.deleteConfirm"))) return;
+                  const { error } = await supabase.rpc("delete_conversation", { _conv: c.id });
+                  if (error) return toast.error(error.message);
+                  refresh();
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-destructive"
+                aria-label={t("chats.delete")}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </li>
           ))}
           {friends

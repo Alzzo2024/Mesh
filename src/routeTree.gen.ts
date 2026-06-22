@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedConversationsRouteImport } from './routes/_authenticated/conversations'
 import { Route as AuthenticatedUFixedIdRouteImport } from './routes/_authenticated/u.$fixedId'
@@ -50,6 +51,12 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
   id: '/feed',
   path: '/feed',
@@ -118,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/conversations': typeof AuthenticatedConversationsRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/search': typeof AuthenticatedSearchRoute
   '/conversations/$id': typeof AuthenticatedConversationsIdRoute
@@ -135,6 +143,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/conversations': typeof AuthenticatedConversationsRouteWithChildren
   '/feed': typeof AuthenticatedFeedRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRouteWithChildren
   '/search': typeof AuthenticatedSearchRoute
   '/conversations/$id': typeof AuthenticatedConversationsIdRoute
@@ -154,6 +163,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/conversations': typeof AuthenticatedConversationsRouteWithChildren
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRouteWithChildren
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/conversations/$id': typeof AuthenticatedConversationsIdRoute
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/conversations'
     | '/feed'
+    | '/notifications'
     | '/profile'
     | '/search'
     | '/conversations/$id'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/conversations'
     | '/feed'
+    | '/notifications'
     | '/profile'
     | '/search'
     | '/conversations/$id'
@@ -208,6 +220,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/conversations'
     | '/_authenticated/feed'
+    | '/_authenticated/notifications'
     | '/_authenticated/profile'
     | '/_authenticated/search'
     | '/_authenticated/conversations/$id'
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/feed': {
@@ -391,6 +411,7 @@ const AuthenticatedUFixedIdRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedConversationsRoute: typeof AuthenticatedConversationsRouteWithChildren
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRouteWithChildren
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedHashtagTagRoute: typeof AuthenticatedHashtagTagRoute
@@ -401,6 +422,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConversationsRoute: AuthenticatedConversationsRouteWithChildren,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRouteWithChildren,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedHashtagTagRoute: AuthenticatedHashtagTagRoute,
