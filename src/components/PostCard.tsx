@@ -4,9 +4,11 @@ import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil,
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { SignedImage } from "@/components/SignedImage";
+import { SignedImage, resolveSignedUrl } from "@/components/SignedImage";
 import { extractHashtags, tokenizeHashtags } from "@/lib/hashtags";
 import { TrustBadge } from "@/components/TrustBadge";
+import { ImageLightbox } from "@/components/ImageLightbox";
+import { EmojiPicker } from "@/components/EmojiPicker";
 import { toast } from "sonner";
 
 export type FeedProfile = {
@@ -408,9 +410,7 @@ export async function loadFeed(userId: string, postIds?: string[]): Promise<Feed
 
   const hydrated = await hydratePosts(posts as any, userId);
   return hydrated.sort(
-    (a, b) =>
-      (b.profile?.trust_score ?? 0) - (a.profile?.trust_score ?? 0) ||
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
 }
 
