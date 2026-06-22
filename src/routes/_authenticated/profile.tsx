@@ -121,7 +121,7 @@ function ProfilePage() {
       </div>
 
       <div className="flex border-b border-border mt-4">
-        {(["posts", "gallery", "comments"] as const).map((k) => (
+        {(["posts", "comments"] as const).map((k) => (
           <button
             key={k}
             onClick={() => setTab(k)}
