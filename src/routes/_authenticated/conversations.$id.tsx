@@ -206,7 +206,7 @@ function ChatPage() {
       : conv?.name ?? "";
 
   return (
-    <div className="flex flex-col h-[100dvh]">
+    <div className="flex flex-col h-[100dvh] pb-20 md:pb-0">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-3 py-3 flex items-center gap-2">
         <Link to="/conversations" className="p-2 -ml-1 rounded-full hover:bg-secondary">
           <ArrowLeft className="h-5 w-5" />
@@ -307,7 +307,7 @@ function ChatPage() {
 
       {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}
 
-      <div className="sticky bottom-0 border-t border-border bg-background p-2 mb-20 md:mb-0" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
+      <div className="border-t border-border bg-background p-2" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
         {(replyTo || selectedPreview) && (
           <div className="mb-2 rounded-xl border border-border bg-secondary/60 p-2 text-sm">
             {replyTo && (
