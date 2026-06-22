@@ -28,7 +28,6 @@ function ProfilePage() {
   const [comments, setComments] = useState<any[]>([]);
   const [tab, setTab] = useState<"posts" | "comments">("posts");
   const [counts, setCounts] = useState({ followers: 0, following: 0 });
-  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
 
   async function load() {
