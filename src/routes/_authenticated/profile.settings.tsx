@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, LogOut, Trash2, Camera, Globe, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useI18n, LOCALES, type Locale } from "@/lib/i18n";
+import { useI18n, LOCALES, APP_VERSION, type Locale } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { SignedImage } from "@/components/SignedImage";
 import { ensureMyProfile } from "@/lib/profile";
