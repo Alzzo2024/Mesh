@@ -256,11 +256,14 @@ export function PostCard({
             {new Date(post.created_at).toLocaleString()}
           </Link>
           {post.image_path && (
-            <SignedImage
-              path={post.image_path}
-              className="mt-3 rounded-xl max-h-96 w-full object-cover border border-border"
-            />
+            <button type="button" onClick={openLightbox} className="mt-3 block w-full">
+              <SignedImage
+                path={post.image_path}
+                className="rounded-xl max-h-96 w-full object-cover border border-border cursor-zoom-in"
+              />
+            </button>
           )}
+          {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}
 
           <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
             <button
@@ -300,7 +303,7 @@ export function PostCard({
                   </button>
                 </p>
               )}
-              <div className="flex gap-2">
+              <div className="flex items-center gap-1">
                 <input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
@@ -308,6 +311,7 @@ export function PostCard({
                   placeholder={replyTo ? t("feed.replyPlaceholder") : t("feed.commentPlaceholder")}
                   className="flex-1 bg-input border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+                <EmojiPicker onPick={(e) => setText((t) => t + e)} />
                 <button
                   onClick={sendComment}
                   className="rounded-full bg-primary text-[#1a1a1a] p-2"
