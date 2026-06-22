@@ -95,11 +95,8 @@ function SettingsPage() {
 
   async function deleteAccount() {
     if (!confirm(t("settings.deleteAccountConfirm"))) return;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("profiles").delete().eq("id", user.id);
+    const { error } = await supabase.rpc("delete_my_account");
+    if (error) return toast.error(error.message);
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
