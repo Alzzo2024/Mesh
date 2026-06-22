@@ -256,8 +256,12 @@ function SettingsPage() {
             <Trash2 className="h-4 w-4" /> {t("settings.deleteAccount")}
           </button>
         </div>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground pt-4">
+          Mesh · {t("settings.version")} {APP_VERSION}
+        </p>
       </div>
-    </div>
   );
 }
 
