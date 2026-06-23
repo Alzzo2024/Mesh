@@ -248,6 +248,11 @@ export function PostCard({
 
   return (
     <li className="px-4 py-4 border-b border-border">
+      {pinned && (
+        <div className="mb-1 flex items-center gap-1 text-xs text-primary">
+          <Pin className="h-3 w-3" /> {t("feed.pinned")}
+        </div>
+      )}
       <div className="flex gap-3">
         <Link to="/u/$fixedId" params={{ fixedId: post.profile?.fixed_id ?? "" }}>
           <Avatar url={post.profile?.avatar_url} name={post.profile?.nickname} />
