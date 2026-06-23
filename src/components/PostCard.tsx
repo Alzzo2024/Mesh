@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X } from "lucide-react";
+import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X, Pin, Share2, Link2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -26,6 +26,7 @@ export type FeedPost = {
   created_at: string;
   image_path: string | null;
   hashtags: string[];
+  pinned_at?: string | null;
   profile?: FeedProfile;
   likes: number;
   dislikes: number;
@@ -207,6 +208,34 @@ export function PostCard({
     onDeleted?.();
   }
 
+  const [pinned, setPinned] = useState<boolean>(!!post.pinned_at);
+  useEffect(() => setPinned(!!post.pinned_at), [post.pinned_at]);
+
+  async function togglePin() {
+    setMenuOpen(false);
+    const next = pinned ? null : new Date().toISOString();
+    const { error } = await supabase.from("posts").update({ pinned_at: next }).eq("id", post.id);
+    if (error) {
+      if (error.message.includes("PIN_LIMIT_REACHED")) toast.error(t("feed.pinLimit"));
+      else toast.error(error.message);
+      return;
+    }
+    setPinned(!pinned);
+    onDeleted?.();
+  }
+
+  const [shareOpen, setShareOpen] = useState(false);
+  async function copyLink() {
+    const url = `${window.location.origin}/post/${post.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t("feed.linkCopied"));
+    } catch {
+      toast.error("—");
+    }
+    setShareOpen(false);
+  }
+
   const topComments = comments.filter((c) => !c.parent_id);
   const repliesByParent = new Map<string, CommentRow[]>();
   for (const c of comments) {
@@ -219,6 +248,11 @@ export function PostCard({
 
   return (
     <li className="px-4 py-4 border-b border-border">
+      {pinned && (
+        <div className="mb-1 flex items-center gap-1 text-xs text-primary">
+          <Pin className="h-3 w-3" /> {t("feed.pinned")}
+        </div>
+      )}
       <div className="flex gap-3">
         <Link to="/u/$fixedId" params={{ fixedId: post.profile?.fixed_id ?? "" }}>
           <Avatar url={post.profile?.avatar_url} name={post.profile?.nickname} />
@@ -253,7 +287,13 @@ export function PostCard({
                   <MoreHorizontal className="h-5 w-5" />
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 top-7 z-20 min-w-36 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                  <div className="absolute right-0 top-7 z-20 min-w-40 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                    <button
+                      onClick={togglePin}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                    >
+                      <Pin className="h-4 w-4" /> {pinned ? t("feed.unpin") : t("feed.pin")}
+                    </button>
                     <button
                       onClick={() => {
                         setEditing(true);
@@ -326,6 +366,33 @@ export function PostCard({
             <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5">
               <MessageCircle className="h-4 w-4" /> {post.commentCount}
             </button>
+            <div className="relative">
+              <button
+                onClick={() => setShareOpen((v) => !v)}
+                className="flex items-center gap-1.5 hover:text-foreground"
+                aria-label={t("feed.share")}
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              {shareOpen && (
+                <div className="absolute bottom-full right-0 mb-2 z-20 min-w-44 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                  <button
+                    onClick={copyLink}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                  >
+                    <Link2 className="h-4 w-4" /> {t("feed.copyLink")}
+                  </button>
+                  <Link
+                    to="/conversations"
+                    search={{ share: post.id } as any}
+                    onClick={() => setShareOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary"
+                  >
+                    <Send className="h-4 w-4" /> {t("feed.shareToChat")}
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
           {open && (
@@ -457,7 +524,7 @@ function CommentItem({
 export async function loadFeed(userId: string, postIds?: string[]): Promise<FeedPost[]> {
   let q = supabase
     .from("posts")
-    .select("id, user_id, content, created_at, image_path, hashtags")
+    .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
     .order("created_at", { ascending: false })
     .limit(100);
   if (postIds) q = q.in("id", postIds);
@@ -471,7 +538,7 @@ export async function loadFeed(userId: string, postIds?: string[]): Promise<Feed
 }
 
 export async function hydratePosts(
-  posts: Array<Pick<FeedPost, "id" | "user_id" | "content" | "created_at" | "image_path" | "hashtags">>,
+  posts: Array<Pick<FeedPost, "id" | "user_id" | "content" | "created_at" | "image_path" | "hashtags"> & { pinned_at?: string | null }>,
   userId: string,
 ): Promise<FeedPost[]> {
   const userIds = [...new Set(posts.map((p) => p.user_id))];

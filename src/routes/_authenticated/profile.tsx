@@ -45,7 +45,7 @@ function ProfilePage() {
     const [psRes, csRes, fol, fwg] = await Promise.all([
       supabase
         .from("posts")
-        .select("id, user_id, content, created_at, image_path, hashtags")
+        .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false }),
       supabase
@@ -56,7 +56,14 @@ function ProfilePage() {
       supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user.id),
       supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user.id),
     ]);
-    setPosts(psRes.data?.length ? await hydratePosts(psRes.data as any, user.id) : []);
+    let hydrated = psRes.data?.length ? await hydratePosts(psRes.data as any, user.id) : [];
+    hydrated = hydrated.sort((a, b) => {
+      const ap = a.pinned_at ? new Date(a.pinned_at).getTime() : 0;
+      const bp = b.pinned_at ? new Date(b.pinned_at).getTime() : 0;
+      if (ap !== bp) return bp - ap;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+    setPosts(hydrated);
     setComments(csRes.data ?? []);
     setCounts({ followers: fol.count ?? 0, following: fwg.count ?? 0 });
     setLoaded(true);

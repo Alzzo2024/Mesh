@@ -54,14 +54,14 @@ function SearchPage() {
           const tag = term.slice(1).toLowerCase();
           raw = await supabase
             .from("posts")
-            .select("id, user_id, content, created_at, image_path, hashtags")
+            .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
             .contains("hashtags", [tag])
             .order("created_at", { ascending: false })
             .limit(50);
         } else {
           raw = await supabase
             .from("posts")
-            .select("id, user_id, content, created_at, image_path, hashtags")
+            .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
             .ilike("content", `%${term}%`)
             .order("created_at", { ascending: false })
             .limit(50);

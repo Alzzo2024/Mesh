@@ -24,7 +24,7 @@ function PostPage() {
     setMe(user.id);
     const { data } = await supabase
       .from("posts")
-      .select("id, user_id, content, created_at, image_path, hashtags")
+      .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
       .eq("id", id)
       .maybeSingle();
     if (!data) return setPost(null);

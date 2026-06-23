@@ -24,7 +24,7 @@ function HashtagPage() {
     setMe(user.id);
     const { data } = await supabase
       .from("posts")
-      .select("id, user_id, content, created_at, image_path, hashtags")
+      .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
       .contains("hashtags", [tag.toLowerCase()])
       .order("created_at", { ascending: false })
       .limit(100);

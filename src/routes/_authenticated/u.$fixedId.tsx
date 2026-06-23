@@ -49,7 +49,7 @@ function UserProfilePage() {
     const [{ data: ps }, fol, fwg] = await Promise.all([
       supabase
         .from("posts")
-        .select("id, user_id, content, created_at, image_path, hashtags")
+        .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
         .eq("user_id", p.id)
         .order("created_at", { ascending: false })
         .limit(50),

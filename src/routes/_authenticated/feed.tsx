@@ -40,6 +40,15 @@ function FeedPage() {
         </h1>
       </header>
 
+      <div className="hidden md:block px-4 pt-4">
+        <button
+          onClick={() => setComposerOpen(true)}
+          className="w-full rounded-full bg-primary text-[#1a1a1a] font-semibold py-3 hover:opacity-90 transition-opacity"
+        >
+          {t("feed.post")}
+        </button>
+      </div>
+
       {posts.length === 0 && (
         <p className="text-center text-muted-foreground py-12">{t("feed.empty")}</p>
       )}
@@ -52,7 +61,7 @@ function FeedPage() {
 
       <button
         onClick={() => setComposerOpen(true)}
-        className="fixed right-4 z-30 rounded-full bg-primary text-[#1a1a1a] shadow-lg h-14 w-14 flex items-center justify-center hover:scale-105 transition-transform"
+        className="md:hidden fixed right-4 z-30 rounded-full bg-primary text-[#1a1a1a] shadow-lg h-14 w-14 flex items-center justify-center hover:scale-105 transition-transform"
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 5rem)" }}
         aria-label={t("feed.newPost")}
       >

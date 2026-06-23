@@ -330,6 +330,7 @@ export type Database = {
           hashtags: string[]
           id: string
           image_path: string | null
+          pinned_at: string | null
           updated_at: string
           user_id: string
         }
@@ -339,6 +340,7 @@ export type Database = {
           hashtags?: string[]
           id?: string
           image_path?: string | null
+          pinned_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -348,6 +350,7 @@ export type Database = {
           hashtags?: string[]
           id?: string
           image_path?: string | null
+          pinned_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -457,7 +460,7 @@ export type Database = {
       conversation_type: "direct" | "group"
       friendship_status: "pending" | "accepted"
       message_media_type: "image" | "audio"
-      notification_type: "comment" | "like" | "dislike" | "follow"
+      notification_type: "comment" | "like" | "dislike" | "follow" | "mention"
       reaction_type: "like" | "dislike"
     }
     CompositeTypes: {
@@ -589,7 +592,7 @@ export const Constants = {
       conversation_type: ["direct", "group"],
       friendship_status: ["pending", "accepted"],
       message_media_type: ["image", "audio"],
-      notification_type: ["comment", "like", "dislike", "follow"],
+      notification_type: ["comment", "like", "dislike", "follow", "mention"],
       reaction_type: ["like", "dislike"],
     },
   },
