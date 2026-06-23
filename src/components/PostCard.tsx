@@ -366,6 +366,33 @@ export function PostCard({
             <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5">
               <MessageCircle className="h-4 w-4" /> {post.commentCount}
             </button>
+            <div className="relative">
+              <button
+                onClick={() => setShareOpen((v) => !v)}
+                className="flex items-center gap-1.5 hover:text-foreground"
+                aria-label={t("feed.share")}
+              >
+                <Share2 className="h-4 w-4" />
+              </button>
+              {shareOpen && (
+                <div className="absolute bottom-full right-0 mb-2 z-20 min-w-44 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                  <button
+                    onClick={copyLink}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                  >
+                    <Link2 className="h-4 w-4" /> {t("feed.copyLink")}
+                  </button>
+                  <Link
+                    to="/conversations"
+                    search={{ share: post.id } as any}
+                    onClick={() => setShareOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary"
+                  >
+                    <Send className="h-4 w-4" /> {t("feed.shareToChat")}
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
           {open && (
