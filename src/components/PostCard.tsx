@@ -81,7 +81,7 @@ export function PostCard({
 }: {
   post: FeedPost;
   me: string | null;
-  onReact: (p: FeedPost, r: "like" | "dislike") => void;
+  onReact?: (p: FeedPost, r: "like" | "dislike") => void;
   onDeleted?: () => void;
 }) {
   const { t } = useI18n();
@@ -93,6 +93,51 @@ export function PostCard({
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(post.content);
   const [lightbox, setLightbox] = useState<string | null>(null);
+
+  // Local optimistic reaction state — keeps clicks instant + consistent
+  const [myReaction, setMyReaction] = useState<"like" | "dislike" | null>(post.myReaction);
+  const [likes, setLikes] = useState(post.likes);
+  const [dislikes, setDislikes] = useState(post.dislikes);
+  useEffect(() => {
+    setMyReaction(post.myReaction);
+    setLikes(post.likes);
+    setDislikes(post.dislikes);
+  }, [post.id, post.myReaction, post.likes, post.dislikes]);
+
+  async function react(reaction: "like" | "dislike") {
+    if (!me) return;
+    const prev = myReaction;
+    // optimistic local update
+    if (prev === reaction) {
+      setMyReaction(null);
+      if (reaction === "like") setLikes((n) => Math.max(0, n - 1));
+      else setDislikes((n) => Math.max(0, n - 1));
+    } else {
+      setMyReaction(reaction);
+      if (reaction === "like") {
+        setLikes((n) => n + 1);
+        if (prev === "dislike") setDislikes((n) => Math.max(0, n - 1));
+      } else {
+        setDislikes((n) => n + 1);
+        if (prev === "like") setLikes((n) => Math.max(0, n - 1));
+      }
+    }
+    // server sync
+    if (prev === reaction) {
+      const { error } = await supabase
+        .from("post_reactions")
+        .delete()
+        .eq("post_id", post.id)
+        .eq("user_id", me);
+      if (error) toast.error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("post_reactions")
+        .upsert({ post_id: post.id, user_id: me, reaction }, { onConflict: "post_id,user_id" });
+      if (error) toast.error(error.message);
+    }
+    onReact?.(post, reaction);
+  }
 
   async function openLightbox() {
     if (!post.image_path) return;
@@ -267,16 +312,16 @@ export function PostCard({
 
           <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
             <button
-              onClick={() => onReact(post, "like")}
-              className={`flex items-center gap-1.5 ${post.myReaction === "like" ? "text-primary" : ""}`}
+              onClick={() => react("like")}
+              className={`flex items-center gap-1.5 ${myReaction === "like" ? "text-primary" : ""}`}
             >
-              <Heart className="h-4 w-4" /> {post.likes}
+              <Heart className="h-4 w-4" /> {likes}
             </button>
             <button
-              onClick={() => onReact(post, "dislike")}
-              className={`flex items-center gap-1.5 ${post.myReaction === "dislike" ? "text-destructive" : ""}`}
+              onClick={() => react("dislike")}
+              className={`flex items-center gap-1.5 ${myReaction === "dislike" ? "text-destructive" : ""}`}
             >
-              <ThumbsDown className="h-4 w-4" /> {post.dislikes}
+              <ThumbsDown className="h-4 w-4" /> {dislikes}
             </button>
             <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5">
               <MessageCircle className="h-4 w-4" /> {post.commentCount}

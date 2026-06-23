@@ -130,8 +130,13 @@ function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const didInitialScroll = useRef(false);
   useEffect(() => {
-    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+    const el = scrollerRef.current;
+    if (!el) return;
+    const behavior: ScrollBehavior = didInitialScroll.current ? "smooth" : "auto";
+    el.scrollTo({ top: el.scrollHeight, behavior });
+    if (messages.length > 0) didInitialScroll.current = true;
   }, [messages]);
 
   async function send() {
@@ -206,7 +211,7 @@ function ChatPage() {
       : conv?.name ?? "";
 
   return (
-    <div className="flex flex-col h-[100dvh] pb-20 md:pb-0">
+    <div className="flex flex-col h-[100dvh] overflow-hidden pb-16 md:pb-0">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-3 py-3 flex items-center gap-2">
         <Link to="/conversations" className="p-2 -ml-1 rounded-full hover:bg-secondary">
           <ArrowLeft className="h-5 w-5" />
@@ -256,7 +261,7 @@ function ChatPage() {
         </div>
       )}
 
-      <div ref={scrollerRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-2 pb-2">
+      <div ref={scrollerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-2">
         {messages.map((m) => {
           const mine = m.sender_id === me;
           const prof = profiles[m.sender_id];

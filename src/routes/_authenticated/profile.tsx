@@ -71,17 +71,6 @@ function ProfilePage() {
   if (!loaded) return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
   if (!profile) return <p className="p-8 text-center text-muted-foreground">{t("error.generic")}</p>;
 
-  async function react(post: FeedPost, reaction: "like" | "dislike") {
-    if (!me) return;
-    if (post.myReaction === reaction) {
-      await supabase.from("post_reactions").delete().eq("post_id", post.id).eq("user_id", me);
-    } else {
-      await supabase
-        .from("post_reactions")
-        .upsert({ post_id: post.id, user_id: me, reaction }, { onConflict: "post_id,user_id" });
-    }
-    load();
-  }
 
   return (
     <div>
@@ -135,7 +124,7 @@ function ProfilePage() {
       </div>
 
       {tab === "posts" && (
-        <ul>{posts.map((p) => <PostCard key={p.id} post={p} me={me} onReact={react} onDeleted={load} />)}</ul>
+        <ul>{posts.map((p) => <PostCard key={p.id} post={p} me={me} onDeleted={load} />)}</ul>
       )}
 
       {tab === "comments" && (
