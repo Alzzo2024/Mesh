@@ -208,6 +208,34 @@ export function PostCard({
     onDeleted?.();
   }
 
+  const [pinned, setPinned] = useState<boolean>(!!post.pinned_at);
+  useEffect(() => setPinned(!!post.pinned_at), [post.pinned_at]);
+
+  async function togglePin() {
+    setMenuOpen(false);
+    const next = pinned ? null : new Date().toISOString();
+    const { error } = await supabase.from("posts").update({ pinned_at: next }).eq("id", post.id);
+    if (error) {
+      if (error.message.includes("PIN_LIMIT_REACHED")) toast.error(t("feed.pinLimit"));
+      else toast.error(error.message);
+      return;
+    }
+    setPinned(!pinned);
+    onDeleted?.();
+  }
+
+  const [shareOpen, setShareOpen] = useState(false);
+  async function copyLink() {
+    const url = `${window.location.origin}/post/${post.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t("feed.linkCopied"));
+    } catch {
+      toast.error("—");
+    }
+    setShareOpen(false);
+  }
+
   const topComments = comments.filter((c) => !c.parent_id);
   const repliesByParent = new Map<string, CommentRow[]>();
   for (const c of comments) {
