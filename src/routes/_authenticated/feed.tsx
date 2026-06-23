@@ -32,18 +32,6 @@ function FeedPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function react(post: FeedPost, reaction: "like" | "dislike") {
-    if (!me) return;
-    if (post.myReaction === reaction) {
-      await supabase.from("post_reactions").delete().eq("post_id", post.id).eq("user_id", me);
-    } else {
-      await supabase
-        .from("post_reactions")
-        .upsert({ post_id: post.id, user_id: me, reaction }, { onConflict: "post_id,user_id" });
-    }
-    refresh();
-  }
-
   return (
     <div>
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
