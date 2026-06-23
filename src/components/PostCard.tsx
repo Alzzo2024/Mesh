@@ -81,7 +81,7 @@ export function PostCard({
 }: {
   post: FeedPost;
   me: string | null;
-  onReact: (p: FeedPost, r: "like" | "dislike") => void;
+  onReact?: (p: FeedPost, r: "like" | "dislike") => void;
   onDeleted?: () => void;
 }) {
   const { t } = useI18n();
@@ -93,6 +93,51 @@ export function PostCard({
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(post.content);
   const [lightbox, setLightbox] = useState<string | null>(null);
+
+  // Local optimistic reaction state — keeps clicks instant + consistent
+  const [myReaction, setMyReaction] = useState<"like" | "dislike" | null>(post.myReaction);
+  const [likes, setLikes] = useState(post.likes);
+  const [dislikes, setDislikes] = useState(post.dislikes);
+  useEffect(() => {
+    setMyReaction(post.myReaction);
+    setLikes(post.likes);
+    setDislikes(post.dislikes);
+  }, [post.id, post.myReaction, post.likes, post.dislikes]);
+
+  async function react(reaction: "like" | "dislike") {
+    if (!me) return;
+    const prev = myReaction;
+    // optimistic local update
+    if (prev === reaction) {
+      setMyReaction(null);
+      if (reaction === "like") setLikes((n) => Math.max(0, n - 1));
+      else setDislikes((n) => Math.max(0, n - 1));
+    } else {
+      setMyReaction(reaction);
+      if (reaction === "like") {
+        setLikes((n) => n + 1);
+        if (prev === "dislike") setDislikes((n) => Math.max(0, n - 1));
+      } else {
+        setDislikes((n) => n + 1);
+        if (prev === "like") setLikes((n) => Math.max(0, n - 1));
+      }
+    }
+    // server sync
+    if (prev === reaction) {
+      const { error } = await supabase
+        .from("post_reactions")
+        .delete()
+        .eq("post_id", post.id)
+        .eq("user_id", me);
+      if (error) toast.error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("post_reactions")
+        .upsert({ post_id: post.id, user_id: me, reaction }, { onConflict: "post_id,user_id" });
+      if (error) toast.error(error.message);
+    }
+    onReact?.(post, reaction);
+  }
 
   async function openLightbox() {
     if (!post.image_path) return;
