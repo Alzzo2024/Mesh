@@ -211,7 +211,7 @@ function ChatPage() {
       : conv?.name ?? "";
 
   return (
-    <div className="flex flex-col h-[100dvh] overflow-hidden">
+    <div className="flex flex-col h-[100dvh] overflow-hidden pb-16 md:pb-0">
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-3 py-3 flex items-center gap-2">
         <Link to="/conversations" className="p-2 -ml-1 rounded-full hover:bg-secondary">
           <ArrowLeft className="h-5 w-5" />
