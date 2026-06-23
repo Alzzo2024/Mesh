@@ -54,11 +54,17 @@ export function PostComposer({
         image_path = `post-media/${key}`;
       }
 
-      const hashtags = extractHashtags(content);
-      const { error } = await supabase
+      const { content: resolved, userIds: mentioned } = await resolveMentions(content);
+      const hashtags = extractHashtags(resolved);
+      const { data: inserted, error } = await supabase
         .from("posts")
-        .insert({ user_id: user.id, content, image_path, hashtags });
+        .insert({ user_id: user.id, content: resolved, image_path, hashtags })
+        .select("id")
+        .single();
       if (error) throw error;
+      if (inserted && mentioned.length) {
+        await insertMentionNotifications(user.id, inserted.id, mentioned);
+      }
 
       setText("");
       clearFile();
