@@ -130,8 +130,13 @@ function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const didInitialScroll = useRef(false);
   useEffect(() => {
-    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
+    const el = scrollerRef.current;
+    if (!el) return;
+    const behavior: ScrollBehavior = didInitialScroll.current ? "smooth" : "auto";
+    el.scrollTo({ top: el.scrollHeight, behavior });
+    if (messages.length > 0) didInitialScroll.current = true;
   }, [messages]);
 
   async function send() {
