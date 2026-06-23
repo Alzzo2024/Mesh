@@ -46,7 +46,7 @@ function FeedPage() {
 
       <ul>
         {posts.map((p) => (
-          <PostCard key={p.id} post={p} me={me} onReact={react} onDeleted={refresh} />
+          <PostCard key={p.id} post={p} me={me} onDeleted={refresh} />
         ))}
       </ul>
 
