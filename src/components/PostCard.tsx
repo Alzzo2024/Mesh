@@ -282,7 +282,13 @@ export function PostCard({
                   <MoreHorizontal className="h-5 w-5" />
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 top-7 z-20 min-w-36 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                  <div className="absolute right-0 top-7 z-20 min-w-40 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                    <button
+                      onClick={togglePin}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                    >
+                      <Pin className="h-4 w-4" /> {pinned ? t("feed.unpin") : t("feed.pin")}
+                    </button>
                     <button
                       onClick={() => {
                         setEditing(true);
