@@ -26,6 +26,7 @@ export type FeedPost = {
   created_at: string;
   image_path: string | null;
   hashtags: string[];
+  pinned_at?: string | null;
   profile?: FeedProfile;
   likes: number;
   dislikes: number;
