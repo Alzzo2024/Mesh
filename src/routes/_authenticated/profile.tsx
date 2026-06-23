@@ -124,7 +124,7 @@ function ProfilePage() {
       </div>
 
       {tab === "posts" && (
-        <ul>{posts.map((p) => <PostCard key={p.id} post={p} me={me} onReact={react} onDeleted={load} />)}</ul>
+        <ul>{posts.map((p) => <PostCard key={p.id} post={p} me={me} onDeleted={load} />)}</ul>
       )}
 
       {tab === "comments" && (
