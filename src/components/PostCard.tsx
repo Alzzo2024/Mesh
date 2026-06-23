@@ -312,16 +312,16 @@ export function PostCard({
 
           <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
             <button
-              onClick={() => onReact(post, "like")}
-              className={`flex items-center gap-1.5 ${post.myReaction === "like" ? "text-primary" : ""}`}
+              onClick={() => react("like")}
+              className={`flex items-center gap-1.5 ${myReaction === "like" ? "text-primary" : ""}`}
             >
-              <Heart className="h-4 w-4" /> {post.likes}
+              <Heart className="h-4 w-4" /> {likes}
             </button>
             <button
-              onClick={() => onReact(post, "dislike")}
-              className={`flex items-center gap-1.5 ${post.myReaction === "dislike" ? "text-destructive" : ""}`}
+              onClick={() => react("dislike")}
+              className={`flex items-center gap-1.5 ${myReaction === "dislike" ? "text-destructive" : ""}`}
             >
-              <ThumbsDown className="h-4 w-4" /> {post.dislikes}
+              <ThumbsDown className="h-4 w-4" /> {dislikes}
             </button>
             <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5">
               <MessageCircle className="h-4 w-4" /> {post.commentCount}
