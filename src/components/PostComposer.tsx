@@ -4,6 +4,7 @@ import { EmojiPicker } from "@/components/EmojiPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { extractHashtags } from "@/lib/hashtags";
+import { resolveMentions, insertMentionNotifications } from "@/lib/mentions";
 import { toast } from "sonner";
 
 export function PostComposer({
