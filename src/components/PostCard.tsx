@@ -524,7 +524,7 @@ function CommentItem({
 export async function loadFeed(userId: string, postIds?: string[]): Promise<FeedPost[]> {
   let q = supabase
     .from("posts")
-    .select("id, user_id, content, created_at, image_path, hashtags")
+    .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
     .order("created_at", { ascending: false })
     .limit(100);
   if (postIds) q = q.in("id", postIds);
@@ -538,7 +538,7 @@ export async function loadFeed(userId: string, postIds?: string[]): Promise<Feed
 }
 
 export async function hydratePosts(
-  posts: Array<Pick<FeedPost, "id" | "user_id" | "content" | "created_at" | "image_path" | "hashtags">>,
+  posts: Array<Pick<FeedPost, "id" | "user_id" | "content" | "created_at" | "image_path" | "hashtags"> & { pinned_at?: string | null }>,
   userId: string,
 ): Promise<FeedPost[]> {
   const userIds = [...new Set(posts.map((p) => p.user_id))];
