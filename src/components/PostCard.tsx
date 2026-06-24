@@ -293,7 +293,15 @@ export function PostCard({
 
   return (
     <li className="px-4 py-4 border-b border-border">
-      {pinned && (
+      {post.repostedBy && (
+        <div className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <Repeat2 className="h-3 w-3" /> {t("feed.repostedBy")}{" "}
+          <Link to="/u/$fixedId" params={{ fixedId: post.repostedBy.fixed_id }} className="hover:underline">
+            @{post.repostedBy.fixed_id}
+          </Link>
+        </div>
+      )}
+      {pinned && !post.repostedBy && (
         <div className="mb-1 flex items-center gap-1 text-xs text-primary">
           <Pin className="h-3 w-3" /> {t("feed.pinned")}
         </div>
