@@ -1,5 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Flame, Search, MessageCircle, User, Bell } from "lucide-react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { Flame, Search, MessageCircle, User, Bell, Pencil } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
 import { useUnreadCounts } from "@/lib/use-unread";
@@ -8,6 +8,7 @@ export function BottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { t } = useI18n();
   const unread = useUnreadCounts();
+  const navigate = useNavigate();
 
   const items = [
     { to: "/feed", icon: Flame, label: t("nav.feed"), dot: 0 },
@@ -16,6 +17,11 @@ export function BottomNav() {
     { to: "/notifications", icon: Bell, label: t("nav.notifications"), dot: unread.notifications },
     { to: "/profile", icon: User, label: t("nav.profile"), dot: 0 },
   ] as const;
+
+  function openComposer() {
+    if (path !== "/feed") navigate({ to: "/feed" });
+    setTimeout(() => window.dispatchEvent(new CustomEvent("mesh:open-composer")), 50);
+  }
 
   return (
     <>
@@ -75,7 +81,15 @@ export function BottomNav() {
             );
           })}
         </ul>
+        <button
+          onClick={openComposer}
+          className="mt-4 flex items-center justify-center gap-2 rounded-full bg-primary text-[#1a1a1a] font-semibold py-3 hover:opacity-90 transition"
+        >
+          <Pencil className="h-4 w-4" />
+          {t("feed.post")}
+        </button>
       </aside>
     </>
   );
 }
+

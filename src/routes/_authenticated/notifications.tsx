@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bell, MessageCircle, Heart, ThumbsDown, UserPlus } from "lucide-react";
+import { Bell, MessageCircle, Heart, ThumbsDown, UserPlus, AtSign, Repeat2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/notifications")({
 
 type N = {
   id: string;
-  type: "comment" | "like" | "dislike" | "follow";
+  type: "comment" | "like" | "dislike" | "follow" | "mention" | "repost";
   actor_id: string | null;
   post_id: string | null;
   created_at: string;
@@ -58,6 +58,8 @@ function NotificationsPage() {
     if (n.type === "comment") return t("notifs.comment");
     if (n.type === "like") return t("notifs.like");
     if (n.type === "dislike") return t("notifs.dislike");
+    if (n.type === "mention") return t("notifs.mention");
+    if (n.type === "repost") return t("notifs.repost");
     return t("notifs.follow");
   }
 
@@ -65,6 +67,8 @@ function NotificationsPage() {
     if (n.type === "comment") return <MessageCircle className="h-4 w-4 text-primary" />;
     if (n.type === "like") return <Heart className="h-4 w-4 text-primary" />;
     if (n.type === "dislike") return <ThumbsDown className="h-4 w-4 text-destructive" />;
+    if (n.type === "mention") return <AtSign className="h-4 w-4 text-primary" />;
+    if (n.type === "repost") return <Repeat2 className="h-4 w-4 text-primary" />;
     return <UserPlus className="h-4 w-4 text-primary" />;
   }
 
@@ -89,7 +93,7 @@ function NotificationsPage() {
                   <span className="font-medium">{n.actor?.nickname ?? "?"}</span>{" "}
                   <span className="text-muted-foreground">{label(n)}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">{new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(n.created_at).toLocaleDateString()}</p>
               </div>
               {icon(n)}
             </div>

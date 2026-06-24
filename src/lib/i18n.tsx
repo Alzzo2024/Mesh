@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type Locale = "pt-PT" | "pt-BR" | "es-ES" | "fr-FR" | "fr-CA" | "de-DE" | "it-IT" | "en-GB" | "en-US";
 
-export const APP_VERSION = "V.1.1.0";
+export const APP_VERSION = "V.2.0.0";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
   { code: "pt-PT", label: "Português", flag: "🇵🇹" },
@@ -101,9 +101,18 @@ const ptPT: Dict = {
   "feed.copyLink": "Copiar link",
   "feed.shareToChat": "Enviar para conversa",
   "feed.linkCopied": "Link copiado",
+  "feed.repost": "Repostar",
+  "feed.reposted": "Repostado",
+  "feed.repostedBy": "Repostado por",
   "notifs.mention": "mencionou-te numa publicação",
+  "notifs.repost": "repostou a tua publicação",
   "settings.title": "Definições",
   "settings.nickname": "Nome de utilizador",
+  "settings.fixedId": "ID público (@)",
+  "settings.fixedIdHint": "Máx. 10 caracteres (letras e números). Só podes mudar a cada 14 dias.",
+  "settings.fixedIdLocked": "Só podes mudar o teu ID a cada 14 dias.",
+  "settings.link": "Link",
+  "settings.linkPlaceholder": "https://...",
   "settings.bio": "Bio",
   "settings.avatar": "Foto de perfil",
   "settings.banner": "Banner",
@@ -115,8 +124,15 @@ const ptPT: Dict = {
   "settings.logout": "Terminar sessão",
   "settings.deleteAccount": "Eliminar conta",
   "settings.deleteAccountConfirm": "Eliminar conta? Esta ação é irreversível.",
-  "settings.nicknameLockedDays": "Só podes mudar o nome de utilizador a cada 14 dias.",
   "settings.version": "Versão",
+  "chats.search": "Procurar conversas…",
+  "chats.searchMessages": "Procurar nesta conversa…",
+  "chats.pin": "Afixar",
+  "chats.unpin": "Desafixar",
+  "chats.members": "Membros",
+  "chats.removeMember": "Remover",
+  "chats.today": "Hoje",
+  "chats.yesterday": "Ontem",
   "common.cancel": "Cancelar",
   "common.back": "Voltar",
   "common.you": "Tu",

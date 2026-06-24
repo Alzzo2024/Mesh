@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X, Pin, Share2, Link2, Check } from "lucide-react";
+import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X, Pin, Share2, Link2, Check, Repeat2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -32,6 +32,10 @@ export type FeedPost = {
   dislikes: number;
   myReaction: "like" | "dislike" | null;
   commentCount: number;
+  repostCount: number;
+  myRepost: boolean;
+  /** When this post is shown because someone else reposted it */
+  repostedBy?: { fixed_id: string; nickname: string } | null;
 };
 
 type CommentRow = {
@@ -224,6 +228,47 @@ export function PostCard({
     onDeleted?.();
   }
 
+  // Repost state (optimistic)
+  const [myRepost, setMyRepost] = useState<boolean>(post.myRepost);
+  const [repostCount, setRepostCount] = useState<number>(post.repostCount);
+  useEffect(() => {
+    setMyRepost(post.myRepost);
+    setRepostCount(post.repostCount);
+  }, [post.id, post.myRepost, post.repostCount]);
+
+  async function toggleRepost() {
+    if (!me) return;
+    if (post.user_id === me) {
+      toast.error("—");
+      return;
+    }
+    const next = !myRepost;
+    setMyRepost(next);
+    setRepostCount((n) => Math.max(0, n + (next ? 1 : -1)));
+    if (next) {
+      const { error } = await supabase
+        .from("post_reposts")
+        .insert({ user_id: me, post_id: post.id });
+      if (error && !error.message.includes("duplicate")) {
+        setMyRepost(false);
+        setRepostCount((n) => Math.max(0, n - 1));
+        toast.error(error.message);
+      }
+    } else {
+      const { error } = await supabase
+        .from("post_reposts")
+        .delete()
+        .eq("user_id", me)
+        .eq("post_id", post.id);
+      if (error) {
+        setMyRepost(true);
+        setRepostCount((n) => n + 1);
+        toast.error(error.message);
+      }
+    }
+    onDeleted?.();
+  }
+
   const [shareOpen, setShareOpen] = useState(false);
   async function copyLink() {
     const url = `${window.location.origin}/post/${post.id}`;
@@ -248,7 +293,15 @@ export function PostCard({
 
   return (
     <li className="px-4 py-4 border-b border-border">
-      {pinned && (
+      {post.repostedBy && (
+        <div className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <Repeat2 className="h-3 w-3" /> {t("feed.repostedBy")}{" "}
+          <Link to="/u/$fixedId" params={{ fixedId: post.repostedBy.fixed_id }} className="hover:underline">
+            @{post.repostedBy.fixed_id}
+          </Link>
+        </div>
+      )}
+      {pinned && !post.repostedBy && (
         <div className="mb-1 flex items-center gap-1 text-xs text-primary">
           <Pin className="h-3 w-3" /> {t("feed.pinned")}
         </div>
@@ -275,7 +328,7 @@ export function PostCard({
                   compact
                 />
               </div>
-              <span className="block text-xs text-muted-foreground">#{post.profile?.fixed_id}</span>
+              <span className="block text-xs text-muted-foreground">@{post.profile?.fixed_id}</span>
             </div>
             {me === post.user_id && (
               <div className="relative ml-auto">
@@ -338,7 +391,7 @@ export function PostCard({
             </p>
           )}
           <Link to="/post/$id" params={{ id: post.id }} className="mt-1 inline-block text-xs text-muted-foreground hover:text-primary">
-            {new Date(post.created_at).toLocaleString()}
+            {new Date(post.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(post.created_at).toLocaleDateString()}
           </Link>
           {post.image_path && (
             <button type="button" onClick={openLightbox} className="mt-3 block w-full">
@@ -365,6 +418,13 @@ export function PostCard({
             </button>
             <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5">
               <MessageCircle className="h-4 w-4" /> {post.commentCount}
+            </button>
+            <button
+              onClick={toggleRepost}
+              className={`flex items-center gap-1.5 ${myRepost ? "text-primary" : ""}`}
+              aria-label={t("feed.repost")}
+            >
+              <Repeat2 className="h-4 w-4" /> {repostCount}
             </button>
             <div className="relative">
               <button
@@ -467,7 +527,7 @@ function CommentItem({
               interactive={me !== comment.user_id}
               compact
             />
-            <span className="block text-muted-foreground">#{comment.profile?.fixed_id}</span>
+            <span className="block text-muted-foreground">@{comment.profile?.fixed_id}</span>
             {me === comment.user_id && (
               <button
                 onClick={() => onDelete(comment.id)}
@@ -501,7 +561,7 @@ function CommentItem({
                     interactive={me !== r.user_id}
                     compact
                   />
-                  <span className="text-muted-foreground">#{r.profile?.fixed_id}</span>
+                  <span className="text-muted-foreground">@{r.profile?.fixed_id}</span>
                   {me === r.user_id && (
                     <button
                       onClick={() => onDelete(r.id)}
@@ -543,10 +603,11 @@ export async function hydratePosts(
 ): Promise<FeedPost[]> {
   const userIds = [...new Set(posts.map((p) => p.user_id))];
   const postIds = posts.map((p) => p.id);
-  const [profilesRes, reactionsRes, commentsRes, trustScores] = await Promise.all([
+  const [profilesRes, reactionsRes, commentsRes, repostsRes, trustScores] = await Promise.all([
     supabase.from("profiles").select("id, fixed_id, nickname, avatar_url").in("id", userIds),
     supabase.from("post_reactions").select("post_id, user_id, reaction").in("post_id", postIds),
     supabase.from("comments").select("post_id").in("post_id", postIds),
+    supabase.from("post_reposts").select("post_id, user_id").in("post_id", postIds),
     fetchTrustScores(userIds),
   ]);
   const profileMap = new Map(
@@ -554,8 +615,10 @@ export async function hydratePosts(
   );
   const reactions = reactionsRes.data ?? [];
   const comments = commentsRes.data ?? [];
+  const reposts = repostsRes.data ?? [];
   return posts.map((p) => {
     const r = reactions.filter((x) => x.post_id === p.id);
+    const rp = reposts.filter((x) => x.post_id === p.id);
     return {
       ...p,
       profile: profileMap.get(p.user_id),
@@ -563,6 +626,8 @@ export async function hydratePosts(
       dislikes: r.filter((x) => x.reaction === "dislike").length,
       myReaction: (r.find((x) => x.user_id === userId)?.reaction as any) ?? null,
       commentCount: comments.filter((c) => c.post_id === p.id).length,
+      repostCount: rp.length,
+      myRepost: rp.some((x) => x.user_id === userId),
     };
   });
 }

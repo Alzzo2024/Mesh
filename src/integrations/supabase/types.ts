@@ -62,6 +62,7 @@ export type Database = {
           is_admin: boolean
           joined_at: string
           last_read_at: string
+          pinned_at: string | null
           user_id: string
         }
         Insert: {
@@ -69,6 +70,7 @@ export type Database = {
           is_admin?: boolean
           joined_at?: string
           last_read_at?: string
+          pinned_at?: string | null
           user_id: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           is_admin?: boolean
           joined_at?: string
           last_read_at?: string
+          pinned_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -323,6 +326,35 @@ export type Database = {
           },
         ]
       }
+      post_reposts: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reposts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           content: string
@@ -368,7 +400,9 @@ export type Database = {
           id: string
           is_private: boolean
           language: string
+          last_fixed_id_update: string
           last_nickname_update: string
+          link: string | null
           nickname: string
           onboarded_at: string | null
         }
@@ -383,7 +417,9 @@ export type Database = {
           id: string
           is_private?: boolean
           language?: string
+          last_fixed_id_update?: string
           last_nickname_update?: string
+          link?: string | null
           nickname: string
           onboarded_at?: string | null
         }
@@ -398,7 +434,9 @@ export type Database = {
           id?: string
           is_private?: boolean
           language?: string
+          last_fixed_id_update?: string
           last_nickname_update?: string
+          link?: string | null
           nickname?: string
           onboarded_at?: string | null
         }
@@ -460,7 +498,13 @@ export type Database = {
       conversation_type: "direct" | "group"
       friendship_status: "pending" | "accepted"
       message_media_type: "image" | "audio"
-      notification_type: "comment" | "like" | "dislike" | "follow" | "mention"
+      notification_type:
+        | "comment"
+        | "like"
+        | "dislike"
+        | "follow"
+        | "mention"
+        | "repost"
       reaction_type: "like" | "dislike"
     }
     CompositeTypes: {
@@ -592,7 +636,14 @@ export const Constants = {
       conversation_type: ["direct", "group"],
       friendship_status: ["pending", "accepted"],
       message_media_type: ["image", "audio"],
-      notification_type: ["comment", "like", "dislike", "follow", "mention"],
+      notification_type: [
+        "comment",
+        "like",
+        "dislike",
+        "follow",
+        "mention",
+        "repost",
+      ],
       reaction_type: ["like", "dislike"],
     },
   },

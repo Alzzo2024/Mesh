@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { ArrowLeft, Send, Image as ImageIcon, X, Reply, MoreVertical, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Send, Image as ImageIcon, X, Reply, MoreVertical, Trash2, UserPlus, Search } from "lucide-react";
 import { resolveSignedUrl } from "@/components/SignedImage";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { ImageLightbox } from "@/components/ImageLightbox";
@@ -58,6 +58,8 @@ function ChatPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [friends, setFriends] = useState<any[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -217,6 +219,13 @@ function ChatPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="font-semibold flex-1 truncate">{title}</h1>
+        <button
+          onClick={() => setSearchOpen((v) => !v)}
+          className="p-2 rounded-full hover:bg-secondary"
+          aria-label="search"
+        >
+          <Search className="h-5 w-5" />
+        </button>
         <div className="relative">
           <button onClick={() => setMenuOpen((v) => !v)} className="p-2 rounded-full hover:bg-secondary" aria-label="menu">
             <MoreVertical className="h-5 w-5" />
@@ -242,6 +251,18 @@ function ChatPage() {
         </div>
       </header>
 
+      {searchOpen && (
+        <div className="border-b border-border bg-background px-3 py-2">
+          <input
+            autoFocus
+            value={searchQ}
+            onChange={(e) => setSearchQ(e.target.value)}
+            placeholder={t("chats.searchMessages")}
+            className="w-full bg-input border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      )}
+
       {addOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center p-3" onClick={() => setAddOpen(false)}>
           <div className="w-full md:max-w-sm rounded-2xl bg-popover border border-border p-3" onClick={(e) => e.stopPropagation()}>
@@ -262,52 +283,80 @@ function ChatPage() {
       )}
 
       <div ref={scrollerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-2">
-        {messages.map((m) => {
-          const mine = m.sender_id === me;
-          const prof = profiles[m.sender_id];
-          return (
-            <div key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
-              {!mine && <Avatar url={prof?.avatar_url} name={prof?.nickname} size={28} />}
-              <div className="relative max-w-[75%]">
-                <button
-                  type="button"
-                  onClick={() => setActiveMsg((v) => (v === m.id ? null : m.id))}
-                  className={`w-full rounded-2xl px-3.5 py-2 text-left ${
-                    mine ? "bg-primary text-[#1a1a1a] rounded-br-sm" : "bg-secondary text-foreground rounded-bl-sm"
-                  }`}
-                >
-                  {conv?.type === "group" && !mine && (
-                    <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+        {(() => {
+          const q = searchQ.trim().toLowerCase();
+          const filtered = q ? messages.filter((m) => (m.content ?? "").toLowerCase().includes(q)) : messages;
+          let lastDay = "";
+          const out: React.ReactElement[] = [];
+          for (const m of filtered) {
+            const d = new Date(m.created_at);
+            const dayKey = d.toDateString();
+            if (dayKey !== lastDay) {
+              lastDay = dayKey;
+              const today = new Date();
+              const yest = new Date(); yest.setDate(today.getDate() - 1);
+              let label: string;
+              if (dayKey === today.toDateString()) label = t("chats.today");
+              else if (dayKey === yest.toDateString()) label = t("chats.yesterday");
+              else label = d.toLocaleDateString();
+              out.push(
+                <div key={`d-${dayKey}`} className="flex items-center gap-2 my-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">{label}</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>,
+              );
+            }
+            const mine = m.sender_id === me;
+            const prof = profiles[m.sender_id];
+            out.push(
+              <div key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                {!mine && <Avatar url={prof?.avatar_url} name={prof?.nickname} size={28} />}
+                <div className="relative max-w-[75%]">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMsg((v) => (v === m.id ? null : m.id))}
+                    className={`w-full rounded-2xl px-3.5 py-2 text-left ${
+                      mine ? "bg-primary text-[#1a1a1a] rounded-br-sm" : "bg-secondary text-foreground rounded-bl-sm"
+                    }`}
+                  >
+                    {conv?.type === "group" && !mine && (
+                      <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+                    )}
+                    {m.reply_to && <ReplyPreview message={messages.find((x) => x.id === m.reply_to)} profiles={profiles} mine={mine} />}
+                    {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} onOpen={setLightbox} />}
+                    {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
+                    <div className={`mt-1 text-[10px] ${mine ? "text-[#1a1a1a]/60" : "text-muted-foreground"} text-right`}>
+                      {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  </button>
+                  {(reactions[m.id]?.length ?? 0) > 0 && (
+                    <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
+                      {Object.entries(countEmojis(reactions[m.id])).map(([emoji, count]) => (
+                        <span key={emoji} className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs">
+                          {emoji} {count}
+                        </span>
+                      ))}
+                    </div>
                   )}
-                  {m.reply_to && <ReplyPreview message={messages.find((x) => x.id === m.reply_to)} profiles={profiles} mine={mine} />}
-                  {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} onOpen={setLightbox} />}
-                  {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
-                </button>
-                {(reactions[m.id]?.length ?? 0) > 0 && (
-                  <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
-                    {Object.entries(countEmojis(reactions[m.id])).map(([emoji, count]) => (
-                      <span key={emoji} className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs">
-                        {emoji} {count}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {activeMsg === m.id && (
-                  <div className={`absolute top-full z-20 mt-1 flex gap-1 rounded-full border border-border bg-popover p-1 shadow-xl ${mine ? "right-0" : "left-0"}`}>
-                    {["💚","😂","❤️","🔥","👍","😢"].map((emoji) => (
-                      <button key={emoji} onClick={() => reactToMessage(m.id, emoji)} className="rounded-full px-2 py-1 hover:bg-secondary" aria-label={t("chat.react")}>
-                        {emoji}
+                  {activeMsg === m.id && (
+                    <div className={`absolute top-full z-20 mt-1 flex gap-1 rounded-full border border-border bg-popover p-1 shadow-xl ${mine ? "right-0" : "left-0"}`}>
+                      {["💚","😂","❤️","🔥","👍","😢"].map((emoji) => (
+                        <button key={emoji} onClick={() => reactToMessage(m.id, emoji)} className="rounded-full px-2 py-1 hover:bg-secondary" aria-label={t("chat.react")}>
+                          {emoji}
+                        </button>
+                      ))}
+                      <button onClick={() => { setReplyTo(m); setActiveMsg(null); }} className="rounded-full p-1.5 hover:bg-secondary" aria-label={t("chat.reply")}>
+                        <Reply className="h-4 w-4" />
                       </button>
-                    ))}
-                    <button onClick={() => { setReplyTo(m); setActiveMsg(null); }} className="rounded-full p-1.5 hover:bg-secondary" aria-label={t("chat.reply")}>
-                      <Reply className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                    </div>
+                  )}
+                </div>
+              </div>,
+            );
+          }
+          return out;
+        })()}
       </div>
 
       {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}

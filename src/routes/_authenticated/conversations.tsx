@@ -32,6 +32,7 @@ function ConvList() {
   const [groupOpen, setGroupOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groupSel, setGroupSel] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
 
   async function refresh() {
     const {
@@ -174,10 +175,27 @@ function ConvList() {
 
   if (path !== "/conversations") return <Outlet />;
 
+  const q = query.trim().toLowerCase();
+  const filteredConvs = q
+    ? convs.filter((c) => {
+        const name = (c.type === "direct" ? c.other?.nickname : c.name) ?? "";
+        return name.toLowerCase().includes(q) || (c.lastMessage ?? "").toLowerCase().includes(q);
+      })
+    : convs;
+  const filteredFriends = q
+    ? friends.filter((f) => f.nickname?.toLowerCase().includes(q) || f.fixed_id?.toLowerCase().includes(q))
+    : friends;
+
   return (
     <div>
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3 space-y-2">
         <h1 className="text-xl font-semibold">{t("chats.title")}</h1>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("chats.search")}
+          className="w-full bg-input border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
       </header>
 
       <section className="p-4 border-b border-border space-y-2">
@@ -211,7 +229,7 @@ function ConvList() {
                 <Avatar url={p.profile?.avatar_url} name={p.profile?.nickname} />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{p.profile?.nickname}</div>
-                  <div className="text-xs text-muted-foreground">#{p.profile?.fixed_id}</div>
+                  <div className="text-xs text-muted-foreground">@{p.profile?.fixed_id}</div>
                 </div>
                 <button onClick={() => acceptFriend(p)} className="rounded-full bg-primary text-[#1a1a1a] p-2">
                   <Check className="h-4 w-4" />
@@ -271,11 +289,13 @@ function ConvList() {
         </section>
       )}
 
-      {convs.length === 0 && friends.length === 0 ? (
-        <p className="text-center text-muted-foreground p-8 text-sm">{t("chats.noFriends")}</p>
+      {filteredConvs.length === 0 && filteredFriends.length === 0 ? (
+        <p className="text-center text-muted-foreground p-8 text-sm">
+          {q ? "—" : t("chats.noFriends")}
+        </p>
       ) : (
         <ul>
-          {convs.map((c) => (
+          {filteredConvs.map((c) => (
             <li key={c.id} className="relative">
               <Link
                 to="/conversations/$id"
@@ -285,10 +305,18 @@ function ConvList() {
                 <Avatar
                   url={c.type === "direct" ? c.other?.avatar_url : null}
                   name={c.type === "direct" ? c.other?.nickname : c.name}
+                  className={c.type === "group" ? "!rounded-lg" : ""}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">
-                    {c.type === "direct" ? c.other?.nickname : c.name}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-medium truncate">
+                      {c.type === "direct" ? c.other?.nickname : c.name}
+                    </div>
+                    {c.lastAt && (
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {new Date(c.lastAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">{c.lastMessage}</div>
                 </div>
@@ -301,14 +329,14 @@ function ConvList() {
                   if (error) return toast.error(error.message);
                   refresh();
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-destructive"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-destructive opacity-0 hover:opacity-100 focus:opacity-100"
                 aria-label={t("chats.delete")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </li>
           ))}
-          {friends
+          {filteredFriends
             .filter((f) => !convs.some((c) => c.type === "direct" && c.other?.id === f.id))
             .map((f) => (
               <li key={f.id}>
@@ -319,7 +347,7 @@ function ConvList() {
                   <Avatar url={f.avatar_url} name={f.nickname} />
                   <div className="flex-1 min-w-0 text-left">
                     <div className="font-medium truncate">{f.nickname}</div>
-                    <div className="text-xs text-muted-foreground">#{f.fixed_id}</div>
+                    <div className="text-xs text-muted-foreground">@{f.fixed_id}</div>
                   </div>
                 </button>
               </li>
