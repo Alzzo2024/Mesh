@@ -419,6 +419,13 @@ export function PostCard({
             <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5">
               <MessageCircle className="h-4 w-4" /> {post.commentCount}
             </button>
+            <button
+              onClick={toggleRepost}
+              className={`flex items-center gap-1.5 ${myRepost ? "text-primary" : ""}`}
+              aria-label={t("feed.repost")}
+            >
+              <Repeat2 className="h-4 w-4" /> {repostCount}
+            </button>
             <div className="relative">
               <button
                 onClick={() => setShareOpen((v) => !v)}
