@@ -93,7 +93,7 @@ function NotificationsPage() {
                   <span className="font-medium">{n.actor?.nickname ?? "?"}</span>{" "}
                   <span className="text-muted-foreground">{label(n)}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">{new Date(n.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(n.created_at).toLocaleDateString()}</p>
               </div>
               {icon(n)}
             </div>
