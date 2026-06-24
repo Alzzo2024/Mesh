@@ -460,7 +460,13 @@ export type Database = {
       conversation_type: "direct" | "group"
       friendship_status: "pending" | "accepted"
       message_media_type: "image" | "audio"
-      notification_type: "comment" | "like" | "dislike" | "follow" | "mention"
+      notification_type:
+        | "comment"
+        | "like"
+        | "dislike"
+        | "follow"
+        | "mention"
+        | "repost"
       reaction_type: "like" | "dislike"
     }
     CompositeTypes: {
@@ -592,7 +598,14 @@ export const Constants = {
       conversation_type: ["direct", "group"],
       friendship_status: ["pending", "accepted"],
       message_media_type: ["image", "audio"],
-      notification_type: ["comment", "like", "dislike", "follow", "mention"],
+      notification_type: [
+        "comment",
+        "like",
+        "dislike",
+        "follow",
+        "mention",
+        "repost",
+      ],
       reaction_type: ["like", "dislike"],
     },
   },
