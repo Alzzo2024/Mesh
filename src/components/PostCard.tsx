@@ -32,6 +32,10 @@ export type FeedPost = {
   dislikes: number;
   myReaction: "like" | "dislike" | null;
   commentCount: number;
+  repostCount: number;
+  myRepost: boolean;
+  /** When this post is shown because someone else reposted it */
+  repostedBy?: { fixed_id: string; nickname: string } | null;
 };
 
 type CommentRow = {
