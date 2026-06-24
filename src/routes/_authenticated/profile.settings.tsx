@@ -19,7 +19,9 @@ function SettingsPage() {
   const [profile, setProfile] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
   const [nickname, setNickname] = useState("");
+  const [fixedId, setFixedId] = useState("");
   const [bio, setBio] = useState("");
+  const [link, setLink] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
@@ -39,7 +41,9 @@ function SettingsPage() {
       const data = await ensureMyProfile(user);
       setProfile(data);
       setNickname(data?.nickname ?? "");
+      setFixedId(data?.fixed_id ?? "");
       setBio(data?.bio ?? "");
+      setLink((data as any)?.link ?? "");
       setIsPrivate(!!data?.is_private);
     } catch (error: any) {
       toast.error(error.message ?? t("error.generic"));
@@ -66,24 +70,40 @@ function SettingsPage() {
     load();
   }
 
-  const nicknameChanged = profile && nickname !== profile.nickname;
-  const daysSinceNick = profile
-    ? (Date.now() - new Date(profile.last_nickname_update).getTime()) / (1000 * 60 * 60 * 24)
-    : 0;
-  const nicknameLocked = nicknameChanged && daysSinceNick < 14;
+  const fixedIdChanged = profile && fixedId.toUpperCase() !== profile.fixed_id;
+  const daysSinceFixedId = profile?.last_fixed_id_update
+    ? (Date.now() - new Date(profile.last_fixed_id_update).getTime()) / (1000 * 60 * 60 * 24)
+    : 999;
+  const fixedIdLocked = fixedIdChanged && daysSinceFixedId < 14;
+  const fixedIdValid = /^[A-Za-z0-9]{1,10}$/.test(fixedId);
+  const linkValid = !link.trim() || /^https?:\/\/.{1,200}$/i.test(link.trim());
 
   async function save() {
     if (!profile) return;
-    if (nicknameLocked) return toast.error(t("settings.nicknameLockedDays"));
+    if (fixedIdChanged && fixedIdLocked) return toast.error(t("settings.fixedIdLocked"));
+    if (fixedIdChanged && !fixedIdValid) return toast.error(t("settings.fixedIdHint"));
+    if (!linkValid) return toast.error("URL inválido (http/https, máx. 200)");
     setSaving(true);
-    const patch: any = { bio, is_private: isPrivate, language: locale };
-    if (nicknameChanged) {
-      patch.nickname = nickname.trim();
+    const patch: any = {
+      nickname: nickname.trim(),
+      bio,
+      link: link.trim() || null,
+      is_private: isPrivate,
+      language: locale,
+    };
+    if (nickname.trim() !== profile.nickname) {
       patch.last_nickname_update = new Date().toISOString();
     }
+    if (fixedIdChanged) patch.fixed_id = fixedId.toUpperCase();
     const { error } = await supabase.from("profiles").update(patch).eq("id", profile.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      if (error.message.includes("FIXED_ID_LOCKED")) toast.error(t("settings.fixedIdLocked"));
+      else if (error.message.includes("profiles_fixed_id_format")) toast.error(t("settings.fixedIdHint"));
+      else if (error.message.includes("duplicate")) toast.error("@ID já está em uso");
+      else toast.error(error.message);
+      return;
+    }
     toast.success("✓");
     navigate({ to: "/profile" });
   }
