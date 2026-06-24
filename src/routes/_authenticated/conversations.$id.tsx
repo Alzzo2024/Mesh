@@ -219,6 +219,13 @@ function ChatPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="font-semibold flex-1 truncate">{title}</h1>
+        <button
+          onClick={() => setSearchOpen((v) => !v)}
+          className="p-2 rounded-full hover:bg-secondary"
+          aria-label="search"
+        >
+          <Search className="h-5 w-5" />
+        </button>
         <div className="relative">
           <button onClick={() => setMenuOpen((v) => !v)} className="p-2 rounded-full hover:bg-secondary" aria-label="menu">
             <MoreVertical className="h-5 w-5" />
@@ -243,6 +250,18 @@ function ChatPage() {
           )}
         </div>
       </header>
+
+      {searchOpen && (
+        <div className="border-b border-border bg-background px-3 py-2">
+          <input
+            autoFocus
+            value={searchQ}
+            onChange={(e) => setSearchQ(e.target.value)}
+            placeholder={t("chats.searchMessages")}
+            className="w-full bg-input border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      )}
 
       {addOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center p-3" onClick={() => setAddOpen(false)}>
