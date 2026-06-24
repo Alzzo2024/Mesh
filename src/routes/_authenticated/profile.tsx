@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Settings, LinkIcon, Repeat2 } from "lucide-react";
+import { Settings, LinkIcon } from "lucide-react";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { resolveSignedUrl, SignedImage } from "@/components/SignedImage";
 import { supabase } from "@/integrations/supabase/client";
