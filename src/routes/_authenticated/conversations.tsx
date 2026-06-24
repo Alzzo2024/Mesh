@@ -175,10 +175,27 @@ function ConvList() {
 
   if (path !== "/conversations") return <Outlet />;
 
+  const q = query.trim().toLowerCase();
+  const filteredConvs = q
+    ? convs.filter((c) => {
+        const name = (c.type === "direct" ? c.other?.nickname : c.name) ?? "";
+        return name.toLowerCase().includes(q) || (c.lastMessage ?? "").toLowerCase().includes(q);
+      })
+    : convs;
+  const filteredFriends = q
+    ? friends.filter((f) => f.nickname?.toLowerCase().includes(q) || f.fixed_id?.toLowerCase().includes(q))
+    : friends;
+
   return (
     <div>
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3 space-y-2">
         <h1 className="text-xl font-semibold">{t("chats.title")}</h1>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("chats.search")}
+          className="w-full bg-input border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
       </header>
 
       <section className="p-4 border-b border-border space-y-2">
