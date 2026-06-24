@@ -61,7 +61,7 @@ const ptPT: Dict = {
   "follow.noFollowing": "Ainda não segues ninguém.",
   "chats.title": "Conversas",
   "chats.addFriend": "Adicionar amigo",
-  "chats.fixedIdPlaceholder": "ID fixo (6 caracteres)",
+  "chats.fixedIdPlaceholder": "ID",
   "chats.send": "Enviar pedido",
   "chats.requests": "Pedidos",
   "chats.friends": "Amigos",
