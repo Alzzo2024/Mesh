@@ -181,8 +181,21 @@ function SettingsPage() {
             maxLength={20}
             className="w-full bg-input border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary"
           />
-          {nicknameLocked && (
-            <p className="text-xs text-destructive mt-1">{t("settings.nicknameLockedDays")}</p>
+        </Field>
+
+        <Field label={t("settings.fixedId")}>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">@</span>
+            <input
+              value={fixedId}
+              onChange={(e) => setFixedId(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 10).toUpperCase())}
+              maxLength={10}
+              className="flex-1 bg-input border border-border rounded-xl px-4 py-2.5 font-mono uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">{t("settings.fixedIdHint")}</p>
+          {fixedIdLocked && (
+            <p className="text-xs text-destructive mt-1">{t("settings.fixedIdLocked")}</p>
           )}
         </Field>
 
@@ -193,6 +206,16 @@ function SettingsPage() {
             maxLength={160}
             rows={3}
             className="w-full bg-input border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          />
+        </Field>
+
+        <Field label={t("settings.link")}>
+          <input
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            maxLength={200}
+            placeholder={t("settings.linkPlaceholder")}
+            className="w-full bg-input border border-border rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </Field>
 
