@@ -58,6 +58,8 @@ function NotificationsPage() {
     if (n.type === "comment") return t("notifs.comment");
     if (n.type === "like") return t("notifs.like");
     if (n.type === "dislike") return t("notifs.dislike");
+    if (n.type === "mention") return t("notifs.mention");
+    if (n.type === "repost") return t("notifs.repost");
     return t("notifs.follow");
   }
 
@@ -65,6 +67,8 @@ function NotificationsPage() {
     if (n.type === "comment") return <MessageCircle className="h-4 w-4 text-primary" />;
     if (n.type === "like") return <Heart className="h-4 w-4 text-primary" />;
     if (n.type === "dislike") return <ThumbsDown className="h-4 w-4 text-destructive" />;
+    if (n.type === "mention") return <AtSign className="h-4 w-4 text-primary" />;
+    if (n.type === "repost") return <Repeat2 className="h-4 w-4 text-primary" />;
     return <UserPlus className="h-4 w-4 text-primary" />;
   }
 
