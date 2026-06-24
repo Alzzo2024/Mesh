@@ -283,52 +283,80 @@ function ChatPage() {
       )}
 
       <div ref={scrollerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-2">
-        {messages.map((m) => {
-          const mine = m.sender_id === me;
-          const prof = profiles[m.sender_id];
-          return (
-            <div key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
-              {!mine && <Avatar url={prof?.avatar_url} name={prof?.nickname} size={28} />}
-              <div className="relative max-w-[75%]">
-                <button
-                  type="button"
-                  onClick={() => setActiveMsg((v) => (v === m.id ? null : m.id))}
-                  className={`w-full rounded-2xl px-3.5 py-2 text-left ${
-                    mine ? "bg-primary text-[#1a1a1a] rounded-br-sm" : "bg-secondary text-foreground rounded-bl-sm"
-                  }`}
-                >
-                  {conv?.type === "group" && !mine && (
-                    <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+        {(() => {
+          const q = searchQ.trim().toLowerCase();
+          const filtered = q ? messages.filter((m) => (m.content ?? "").toLowerCase().includes(q)) : messages;
+          let lastDay = "";
+          const out: JSX.Element[] = [];
+          for (const m of filtered) {
+            const d = new Date(m.created_at);
+            const dayKey = d.toDateString();
+            if (dayKey !== lastDay) {
+              lastDay = dayKey;
+              const today = new Date();
+              const yest = new Date(); yest.setDate(today.getDate() - 1);
+              let label: string;
+              if (dayKey === today.toDateString()) label = t("chats.today");
+              else if (dayKey === yest.toDateString()) label = t("chats.yesterday");
+              else label = d.toLocaleDateString();
+              out.push(
+                <div key={`d-${dayKey}`} className="flex items-center gap-2 my-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">{label}</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>,
+              );
+            }
+            const mine = m.sender_id === me;
+            const prof = profiles[m.sender_id];
+            out.push(
+              <div key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                {!mine && <Avatar url={prof?.avatar_url} name={prof?.nickname} size={28} />}
+                <div className="relative max-w-[75%]">
+                  <button
+                    type="button"
+                    onClick={() => setActiveMsg((v) => (v === m.id ? null : m.id))}
+                    className={`w-full rounded-2xl px-3.5 py-2 text-left ${
+                      mine ? "bg-primary text-[#1a1a1a] rounded-br-sm" : "bg-secondary text-foreground rounded-bl-sm"
+                    }`}
+                  >
+                    {conv?.type === "group" && !mine && (
+                      <div className="text-xs opacity-70 mb-0.5">{prof?.nickname}</div>
+                    )}
+                    {m.reply_to && <ReplyPreview message={messages.find((x) => x.id === m.reply_to)} profiles={profiles} mine={mine} />}
+                    {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} onOpen={setLightbox} />}
+                    {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
+                    <div className={`mt-1 text-[10px] ${mine ? "text-[#1a1a1a]/60" : "text-muted-foreground"} text-right`}>
+                      {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  </button>
+                  {(reactions[m.id]?.length ?? 0) > 0 && (
+                    <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
+                      {Object.entries(countEmojis(reactions[m.id])).map(([emoji, count]) => (
+                        <span key={emoji} className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs">
+                          {emoji} {count}
+                        </span>
+                      ))}
+                    </div>
                   )}
-                  {m.reply_to && <ReplyPreview message={messages.find((x) => x.id === m.reply_to)} profiles={profiles} mine={mine} />}
-                  {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} onOpen={setLightbox} />}
-                  {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
-                </button>
-                {(reactions[m.id]?.length ?? 0) > 0 && (
-                  <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
-                    {Object.entries(countEmojis(reactions[m.id])).map(([emoji, count]) => (
-                      <span key={emoji} className="rounded-full bg-surface-elevated px-2 py-0.5 text-xs">
-                        {emoji} {count}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {activeMsg === m.id && (
-                  <div className={`absolute top-full z-20 mt-1 flex gap-1 rounded-full border border-border bg-popover p-1 shadow-xl ${mine ? "right-0" : "left-0"}`}>
-                    {["💚","😂","❤️","🔥","👍","😢"].map((emoji) => (
-                      <button key={emoji} onClick={() => reactToMessage(m.id, emoji)} className="rounded-full px-2 py-1 hover:bg-secondary" aria-label={t("chat.react")}>
-                        {emoji}
+                  {activeMsg === m.id && (
+                    <div className={`absolute top-full z-20 mt-1 flex gap-1 rounded-full border border-border bg-popover p-1 shadow-xl ${mine ? "right-0" : "left-0"}`}>
+                      {["💚","😂","❤️","🔥","👍","😢"].map((emoji) => (
+                        <button key={emoji} onClick={() => reactToMessage(m.id, emoji)} className="rounded-full px-2 py-1 hover:bg-secondary" aria-label={t("chat.react")}>
+                          {emoji}
+                        </button>
+                      ))}
+                      <button onClick={() => { setReplyTo(m); setActiveMsg(null); }} className="rounded-full p-1.5 hover:bg-secondary" aria-label={t("chat.reply")}>
+                        <Reply className="h-4 w-4" />
                       </button>
-                    ))}
-                    <button onClick={() => { setReplyTo(m); setActiveMsg(null); }} className="rounded-full p-1.5 hover:bg-secondary" aria-label={t("chat.reply")}>
-                      <Reply className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                    </div>
+                  )}
+                </div>
+              </div>,
+            );
+          }
+          return out;
+        })()}
       </div>
 
       {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}
