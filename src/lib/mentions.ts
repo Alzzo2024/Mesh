@@ -30,7 +30,7 @@ export async function resolveMentions(
   const map = new Map(data.map((p) => [p.nickname.toLowerCase(), p]));
   const content = text.replace(MENTION_RE, (full, pre: string, nick: string) => {
     const p = map.get(nick.toLowerCase());
-    return p ? `${pre}#${p.fixed_id}` : full;
+    return p ? `${pre}@${p.fixed_id}` : full;
   });
   return { content, userIds: data.map((p) => p.id) };
 }
