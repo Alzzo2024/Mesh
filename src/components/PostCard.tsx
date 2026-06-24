@@ -391,7 +391,7 @@ export function PostCard({
             </p>
           )}
           <Link to="/post/$id" params={{ id: post.id }} className="mt-1 inline-block text-xs text-muted-foreground hover:text-primary">
-            {new Date(post.created_at).toLocaleString()}
+            {new Date(post.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(post.created_at).toLocaleDateString()}
           </Link>
           {post.image_path && (
             <button type="button" onClick={openLightbox} className="mt-3 block w-full">
