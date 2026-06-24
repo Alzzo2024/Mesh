@@ -32,6 +32,7 @@ function ConvList() {
   const [groupOpen, setGroupOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groupSel, setGroupSel] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
 
   async function refresh() {
     const {
