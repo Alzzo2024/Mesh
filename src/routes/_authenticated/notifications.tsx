@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/notifications")({
 
 type N = {
   id: string;
-  type: "comment" | "like" | "dislike" | "follow";
+  type: "comment" | "like" | "dislike" | "follow" | "mention" | "repost";
   actor_id: string | null;
   post_id: string | null;
   created_at: string;
