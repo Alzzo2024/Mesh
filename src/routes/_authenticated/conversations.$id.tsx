@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { ArrowLeft, Send, Image as ImageIcon, X, Reply, MoreVertical, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Send, Image as ImageIcon, X, Reply, MoreVertical, Trash2, UserPlus, Search } from "lucide-react";
 import { resolveSignedUrl } from "@/components/SignedImage";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { ImageLightbox } from "@/components/ImageLightbox";
