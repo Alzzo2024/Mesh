@@ -111,7 +111,7 @@ function UserProfilePage() {
               <TrustBadge targetUserId={profile.id} interactive={me !== profile.id} />
               <CreatorBadge fixedId={profile.fixed_id} />
             </div>
-            <p className="text-sm text-muted-foreground font-mono">#{profile.fixed_id}</p>
+            <p className="text-sm text-muted-foreground font-mono">@{profile.fixed_id}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button

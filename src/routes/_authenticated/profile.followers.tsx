@@ -87,7 +87,7 @@ export function FollowList({ kind, fixedId }: { kind: "followers" | "following";
                 <Avatar url={u.avatar_url} name={u.nickname} />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{u.nickname}</p>
-                  <p className="text-xs text-muted-foreground">#{u.fixed_id}</p>
+                  <p className="text-xs text-muted-foreground">@{u.fixed_id}</p>
                   {u.bio && <p className="text-sm text-muted-foreground truncate">{u.bio}</p>}
                 </div>
               </Link>

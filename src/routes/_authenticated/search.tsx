@@ -131,7 +131,7 @@ function SearchPage() {
                 <Avatar url={p.avatar_url} name={p.nickname} />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{p.nickname}</p>
-                  <p className="text-xs text-muted-foreground">#{p.fixed_id}</p>
+                  <p className="text-xs text-muted-foreground">@{p.fixed_id}</p>
                   {p.bio && <p className="text-sm text-muted-foreground truncate">{p.bio}</p>}
                 </div>
               </Link>

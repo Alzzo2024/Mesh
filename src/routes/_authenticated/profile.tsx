@@ -102,7 +102,7 @@ function ProfilePage() {
           <TrustBadge targetUserId={profile.id} interactive={false} />
           <CreatorBadge fixedId={profile.fixed_id} />
         </div>
-        <p className="text-sm text-muted-foreground font-mono">#{profile.fixed_id}</p>
+        <p className="text-sm text-muted-foreground font-mono">@{profile.fixed_id}</p>
         {profile.bio && <p className="text-sm mt-2 whitespace-pre-wrap">{profile.bio}</p>}
         <div className="flex gap-4 mt-3 text-sm">
           <Link to="/profile/followers" className="hover:underline">

@@ -211,7 +211,7 @@ function ConvList() {
                 <Avatar url={p.profile?.avatar_url} name={p.profile?.nickname} />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{p.profile?.nickname}</div>
-                  <div className="text-xs text-muted-foreground">#{p.profile?.fixed_id}</div>
+                  <div className="text-xs text-muted-foreground">@{p.profile?.fixed_id}</div>
                 </div>
                 <button onClick={() => acceptFriend(p)} className="rounded-full bg-primary text-[#1a1a1a] p-2">
                   <Check className="h-4 w-4" />
@@ -319,7 +319,7 @@ function ConvList() {
                   <Avatar url={f.avatar_url} name={f.nickname} />
                   <div className="flex-1 min-w-0 text-left">
                     <div className="font-medium truncate">{f.nickname}</div>
-                    <div className="text-xs text-muted-foreground">#{f.fixed_id}</div>
+                    <div className="text-xs text-muted-foreground">@{f.fixed_id}</div>
                   </div>
                 </button>
               </li>

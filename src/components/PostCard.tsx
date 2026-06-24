@@ -275,7 +275,7 @@ export function PostCard({
                   compact
                 />
               </div>
-              <span className="block text-xs text-muted-foreground">#{post.profile?.fixed_id}</span>
+              <span className="block text-xs text-muted-foreground">@{post.profile?.fixed_id}</span>
             </div>
             {me === post.user_id && (
               <div className="relative ml-auto">
@@ -467,7 +467,7 @@ function CommentItem({
               interactive={me !== comment.user_id}
               compact
             />
-            <span className="block text-muted-foreground">#{comment.profile?.fixed_id}</span>
+            <span className="block text-muted-foreground">@{comment.profile?.fixed_id}</span>
             {me === comment.user_id && (
               <button
                 onClick={() => onDelete(comment.id)}
@@ -501,7 +501,7 @@ function CommentItem({
                     interactive={me !== r.user_id}
                     compact
                   />
-                  <span className="text-muted-foreground">#{r.profile?.fixed_id}</span>
+                  <span className="text-muted-foreground">@{r.profile?.fixed_id}</span>
                   {me === r.user_id && (
                     <button
                       onClick={() => onDelete(r.id)}
