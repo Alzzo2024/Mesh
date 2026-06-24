@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type Locale = "pt-PT" | "pt-BR" | "es-ES" | "fr-FR" | "fr-CA" | "de-DE" | "it-IT" | "en-GB" | "en-US";
 
-export const APP_VERSION = "V.1.1.0";
+export const APP_VERSION = "V.2.0.0";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
   { code: "pt-PT", label: "Português", flag: "🇵🇹" },
