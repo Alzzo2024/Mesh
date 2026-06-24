@@ -547,10 +547,11 @@ export async function hydratePosts(
 ): Promise<FeedPost[]> {
   const userIds = [...new Set(posts.map((p) => p.user_id))];
   const postIds = posts.map((p) => p.id);
-  const [profilesRes, reactionsRes, commentsRes, trustScores] = await Promise.all([
+  const [profilesRes, reactionsRes, commentsRes, repostsRes, trustScores] = await Promise.all([
     supabase.from("profiles").select("id, fixed_id, nickname, avatar_url").in("id", userIds),
     supabase.from("post_reactions").select("post_id, user_id, reaction").in("post_id", postIds),
     supabase.from("comments").select("post_id").in("post_id", postIds),
+    supabase.from("post_reposts").select("post_id, user_id").in("post_id", postIds),
     fetchTrustScores(userIds),
   ]);
   const profileMap = new Map(
@@ -558,8 +559,10 @@ export async function hydratePosts(
   );
   const reactions = reactionsRes.data ?? [];
   const comments = commentsRes.data ?? [];
+  const reposts = repostsRes.data ?? [];
   return posts.map((p) => {
     const r = reactions.filter((x) => x.post_id === p.id);
+    const rp = reposts.filter((x) => x.post_id === p.id);
     return {
       ...p,
       profile: profileMap.get(p.user_id),
@@ -567,6 +570,8 @@ export async function hydratePosts(
       dislikes: r.filter((x) => x.reaction === "dislike").length,
       myReaction: (r.find((x) => x.user_id === userId)?.reaction as any) ?? null,
       commentCount: comments.filter((c) => c.post_id === p.id).length,
+      repostCount: rp.length,
+      myRepost: rp.some((x) => x.user_id === userId),
     };
   });
 }
