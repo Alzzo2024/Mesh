@@ -228,6 +228,47 @@ export function PostCard({
     onDeleted?.();
   }
 
+  // Repost state (optimistic)
+  const [myRepost, setMyRepost] = useState<boolean>(post.myRepost);
+  const [repostCount, setRepostCount] = useState<number>(post.repostCount);
+  useEffect(() => {
+    setMyRepost(post.myRepost);
+    setRepostCount(post.repostCount);
+  }, [post.id, post.myRepost, post.repostCount]);
+
+  async function toggleRepost() {
+    if (!me) return;
+    if (post.user_id === me) {
+      toast.error("—");
+      return;
+    }
+    const next = !myRepost;
+    setMyRepost(next);
+    setRepostCount((n) => Math.max(0, n + (next ? 1 : -1)));
+    if (next) {
+      const { error } = await supabase
+        .from("post_reposts")
+        .insert({ user_id: me, post_id: post.id });
+      if (error && !error.message.includes("duplicate")) {
+        setMyRepost(false);
+        setRepostCount((n) => Math.max(0, n - 1));
+        toast.error(error.message);
+      }
+    } else {
+      const { error } = await supabase
+        .from("post_reposts")
+        .delete()
+        .eq("user_id", me)
+        .eq("post_id", post.id);
+      if (error) {
+        setMyRepost(true);
+        setRepostCount((n) => n + 1);
+        toast.error(error.message);
+      }
+    }
+    onDeleted?.();
+  }
+
   const [shareOpen, setShareOpen] = useState(false);
   async function copyLink() {
     const url = `${window.location.origin}/post/${post.id}`;
