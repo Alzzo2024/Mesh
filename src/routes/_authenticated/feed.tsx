@@ -29,6 +29,9 @@ function FeedPage() {
 
   useEffect(() => {
     refresh();
+    const onOpen = () => setComposerOpen(true);
+    window.addEventListener("mesh:open-composer", onOpen);
+    return () => window.removeEventListener("mesh:open-composer", onOpen);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -39,15 +42,6 @@ function FeedPage() {
           <MeshWord />
         </h1>
       </header>
-
-      <div className="hidden md:block px-4 pt-4">
-        <button
-          onClick={() => setComposerOpen(true)}
-          className="w-full rounded-full bg-primary text-[#1a1a1a] font-semibold py-3 hover:opacity-90 transition-opacity"
-        >
-          {t("feed.post")}
-        </button>
-      </div>
 
       {posts.length === 0 && (
         <p className="text-center text-muted-foreground py-12">{t("feed.empty")}</p>
