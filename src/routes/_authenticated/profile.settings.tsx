@@ -279,7 +279,7 @@ function SettingsPage() {
 
         <button
           onClick={save}
-          disabled={saving || nicknameLocked}
+          disabled={saving || fixedIdLocked || !fixedIdValid}
           className="w-full rounded-xl bg-primary text-[#1a1a1a] font-medium py-3 disabled:opacity-40"
         >
           {t("settings.save")}
