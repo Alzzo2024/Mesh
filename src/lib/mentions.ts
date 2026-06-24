@@ -10,29 +10,38 @@ export function extractMentionNicknames(text: string): string[] {
 }
 
 /**
- * Resolves @nickname → #FIXED_ID in the given text, and returns:
- * - rewritten content
+ * Resolves @nickname → @FIXED_ID in the given text, and returns:
+ * - rewritten content (preserves @FIXED_ID as-is if already an id)
  * - mentioned user ids (for notifications)
  */
 export async function resolveMentions(
   text: string,
 ): Promise<{ content: string; userIds: string[] }> {
-  const nicks = extractMentionNicknames(text);
-  if (nicks.length === 0) return { content: text, userIds: [] };
+  const tokens = extractMentionNicknames(text);
+  if (tokens.length === 0) return { content: text, userIds: [] };
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, nickname, fixed_id")
-    .in("nickname", nicks);
+  // Try both nickname and fixed_id matches
+  const [byNick, byId] = await Promise.all([
+    supabase.from("profiles").select("id, nickname, fixed_id").in("nickname", tokens),
+    supabase.from("profiles").select("id, nickname, fixed_id").in("fixed_id", tokens.map((t) => t.toUpperCase())),
+  ]);
 
-  if (!data?.length) return { content: text, userIds: [] };
+  const profs = [...(byNick.data ?? []), ...(byId.data ?? [])];
+  if (!profs.length) return { content: text, userIds: [] };
 
-  const map = new Map(data.map((p) => [p.nickname.toLowerCase(), p]));
-  const content = text.replace(MENTION_RE, (full, pre: string, nick: string) => {
-    const p = map.get(nick.toLowerCase());
-    return p ? `${pre}@${p.fixed_id}` : full;
+  const nickMap = new Map(profs.map((p) => [p.nickname.toLowerCase(), p]));
+  const idMap = new Map(profs.map((p) => [p.fixed_id.toUpperCase(), p]));
+
+  const userIds = new Set<string>();
+  const content = text.replace(MENTION_RE, (full, pre: string, token: string) => {
+    const byNickname = nickMap.get(token.toLowerCase());
+    const byFixedId = idMap.get(token.toUpperCase());
+    const p = byNickname ?? byFixedId;
+    if (!p) return full;
+    userIds.add(p.id);
+    return `${pre}@${p.fixed_id}`;
   });
-  return { content, userIds: data.map((p) => p.id) };
+  return { content, userIds: [...userIds] };
 }
 
 export async function insertMentionNotifications(
