@@ -287,7 +287,7 @@ function ChatPage() {
           const q = searchQ.trim().toLowerCase();
           const filtered = q ? messages.filter((m) => (m.content ?? "").toLowerCase().includes(q)) : messages;
           let lastDay = "";
-          const out: JSX.Element[] = [];
+          const out: React.ReactElement[] = [];
           for (const m of filtered) {
             const d = new Date(m.created_at);
             const dayKey = d.toDateString();
