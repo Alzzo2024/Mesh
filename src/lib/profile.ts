@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 export const PROFILE_SAFE_SELECT =
-  "id, fixed_id, nickname, bio, avatar_url, banner_url, last_nickname_update, is_private, language, created_at, onboarded_at";
+  "id, fixed_id, nickname, bio, avatar_url, banner_url, last_nickname_update, last_fixed_id_update, is_private, language, link, created_at, onboarded_at";
 
 function makeFixedId() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
