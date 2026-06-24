@@ -58,6 +58,8 @@ function ChatPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [friends, setFriends] = useState<any[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
