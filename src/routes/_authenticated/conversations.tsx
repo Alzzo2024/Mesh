@@ -336,6 +336,7 @@ function ConvList() {
                     </div>
                     {c.lastAt && (
                       <span className="text-xs text-muted-foreground shrink-0">
+                        {pinnedIds.has(c.id) && <Pin className="inline h-3 w-3 mr-1" />}
                         {new Date(c.lastAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     )}
@@ -343,19 +344,54 @@ function ConvList() {
                   <div className="text-xs text-muted-foreground truncate">{c.lastMessage}</div>
                 </div>
               </Link>
-              <button
-                onClick={async (e) => {
-                  e.preventDefault();
-                  if (!confirm(t("chats.deleteConfirm"))) return;
-                  const { error } = await supabase.rpc("delete_conversation", { _conv: c.id });
-                  if (error) return toast.error(error.message);
-                  refresh();
-                }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-destructive opacity-0 hover:opacity-100 focus:opacity-100"
-                aria-label={t("chats.delete")}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2" ref={menuFor === c.id ? menuRef : undefined}>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMenuFor(menuFor === c.id ? null : c.id);
+                  }}
+                  className="p-2 text-muted-foreground hover:text-foreground"
+                  aria-label="menu"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+                {menuFor === c.id && (
+                  <div className="absolute right-0 top-full mt-1 z-20 min-w-40 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        setMenuFor(null);
+                        if (pinnedIds.has(c.id)) {
+                          await supabase.from("conversation_pins").delete().eq("user_id", me!).eq("conversation_id", c.id);
+                        } else {
+                          if (pinnedIds.size >= 3) return toast.error(t("chats.pinLimit"));
+                          const { error } = await supabase
+                            .from("conversation_pins")
+                            .insert({ user_id: me!, conversation_id: c.id });
+                          if (error) return toast.error(error.message);
+                        }
+                        refresh();
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                    >
+                      <Pin className="h-4 w-4" /> {pinnedIds.has(c.id) ? "—" : t("chats.pinned")}
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        setMenuFor(null);
+                        if (!confirm(t("chats.deleteConfirm"))) return;
+                        const { error } = await supabase.rpc("delete_conversation", { _conv: c.id });
+                        if (error) return toast.error(error.message);
+                        refresh();
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-secondary"
+                    >
+                      <Trash2 className="h-4 w-4" /> {t("chats.delete")}
+                    </button>
+                  </div>
+                )}
+              </div>
             </li>
           ))}
           {filteredFriends
