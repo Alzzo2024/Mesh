@@ -91,6 +91,32 @@ export type Database = {
           },
         ]
       }
+      conversation_pins: {
+        Row: {
+          conversation_id: string
+          pinned_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          pinned_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          pinned_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_pins_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           avatar_url: string | null
@@ -287,6 +313,32 @@ export type Database = {
           },
           {
             foreignKeyName: "notifications_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_bookmarks: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_bookmarks_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
@@ -493,6 +545,10 @@ export type Database = {
         Returns: boolean
       }
       mark_conversation_read: { Args: { _conv: string }; Returns: undefined }
+      update_conversation_meta: {
+        Args: { _avatar: string; _conv: string; _name: string }
+        Returns: undefined
+      }
     }
     Enums: {
       conversation_type: "direct" | "group"
