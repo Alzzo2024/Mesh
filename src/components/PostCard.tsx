@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X, Pin, Share2, Link2, Check, Repeat2 } from "lucide-react";
+import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X, Pin, Share2, Link2, Repeat2, Bookmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
