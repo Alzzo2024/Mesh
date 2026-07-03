@@ -305,6 +305,7 @@ export function PostCard({
     setShareToOpen(true);
   }
   async function sendToFriend(friendId: string) {
+    if (!me) return;
     const { data: convId, error: e1 } = await supabase.rpc("get_or_create_direct_conversation", {
       _other_user: friendId,
     });
