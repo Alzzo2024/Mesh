@@ -1,9 +1,9 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { UserPlus, Users, Check, X, Trash2 } from "lucide-react";
+import { UserPlus, Users, Check, X, MoreVertical, Pin, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/conversations")({
@@ -33,6 +33,16 @@ function ConvList() {
   const [groupName, setGroupName] = useState("");
   const [groupSel, setGroupSel] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuFor(null);
+    };
+    window.addEventListener("mousedown", h);
+    return () => window.removeEventListener("mousedown", h);
+  }, []);
 
   async function refresh() {
     const {
@@ -87,10 +97,22 @@ function ConvList() {
           lastAt: lastMsg?.created_at,
         };
       });
-      rows.sort((a, b) => (b.lastAt ?? "").localeCompare(a.lastAt ?? ""));
+      const { data: pins } = await supabase
+        .from("conversation_pins")
+        .select("conversation_id")
+        .eq("user_id", user.id);
+      const pinSet = new Set((pins ?? []).map((p) => p.conversation_id));
+      setPinnedIds(pinSet);
+      rows.sort((a, b) => {
+        const pa = pinSet.has(a.id) ? 1 : 0;
+        const pb = pinSet.has(b.id) ? 1 : 0;
+        if (pa !== pb) return pb - pa;
+        return (b.lastAt ?? "").localeCompare(a.lastAt ?? "");
+      });
       setConvs(rows);
     } else {
       setConvs([]);
+      setPinnedIds(new Set());
     }
 
     const { data: fr } = await supabase
@@ -314,6 +336,7 @@ function ConvList() {
                     </div>
                     {c.lastAt && (
                       <span className="text-xs text-muted-foreground shrink-0">
+                        {pinnedIds.has(c.id) && <Pin className="inline h-3 w-3 mr-1" />}
                         {new Date(c.lastAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     )}
@@ -321,19 +344,54 @@ function ConvList() {
                   <div className="text-xs text-muted-foreground truncate">{c.lastMessage}</div>
                 </div>
               </Link>
-              <button
-                onClick={async (e) => {
-                  e.preventDefault();
-                  if (!confirm(t("chats.deleteConfirm"))) return;
-                  const { error } = await supabase.rpc("delete_conversation", { _conv: c.id });
-                  if (error) return toast.error(error.message);
-                  refresh();
-                }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-destructive opacity-0 hover:opacity-100 focus:opacity-100"
-                aria-label={t("chats.delete")}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2" ref={menuFor === c.id ? menuRef : undefined}>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMenuFor(menuFor === c.id ? null : c.id);
+                  }}
+                  className="p-2 text-muted-foreground hover:text-foreground"
+                  aria-label="menu"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+                {menuFor === c.id && (
+                  <div className="absolute right-0 top-full mt-1 z-20 min-w-40 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        setMenuFor(null);
+                        if (pinnedIds.has(c.id)) {
+                          await supabase.from("conversation_pins").delete().eq("user_id", me!).eq("conversation_id", c.id);
+                        } else {
+                          if (pinnedIds.size >= 3) return toast.error(t("chats.pinLimit"));
+                          const { error } = await supabase
+                            .from("conversation_pins")
+                            .insert({ user_id: me!, conversation_id: c.id });
+                          if (error) return toast.error(error.message);
+                        }
+                        refresh();
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
+                    >
+                      <Pin className="h-4 w-4" /> {pinnedIds.has(c.id) ? "—" : t("chats.pinned")}
+                    </button>
+                    <button
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        setMenuFor(null);
+                        if (!confirm(t("chats.deleteConfirm"))) return;
+                        const { error } = await supabase.rpc("delete_conversation", { _conv: c.id });
+                        if (error) return toast.error(error.message);
+                        refresh();
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive hover:bg-secondary"
+                    >
+                      <Trash2 className="h-4 w-4" /> {t("chats.delete")}
+                    </button>
+                  </div>
+                )}
+              </div>
             </li>
           ))}
           {filteredFriends

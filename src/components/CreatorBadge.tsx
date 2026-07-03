@@ -9,7 +9,7 @@ export function CreatorBadge({ fixedId }: { fixedId?: string | null }) {
     <button
       type="button"
       onClick={() => toast(t("creator.title"))}
-      className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#7CF5C4] bg-[#7CF5C4]/15 font-mesh text-[#7CF5C4] text-base leading-none"
+      className="inline-flex items-center justify-center font-mesh text-[#7CF5C4] text-2xl leading-none px-1"
       aria-label={t("creator.title")}
       title={t("creator.title")}
     >
