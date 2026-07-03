@@ -270,6 +270,8 @@ export function PostCard({
   }
 
   const [shareOpen, setShareOpen] = useState(false);
+  const [shareToOpen, setShareToOpen] = useState(false);
+  const [shareFriends, setShareFriends] = useState<Array<{ id: string; nickname: string; fixed_id: string; avatar_url: string | null }>>([]);
   async function copyLink() {
     const url = `${window.location.origin}/post/${post.id}`;
     try {
@@ -279,6 +281,83 @@ export function PostCard({
       toast.error("—");
     }
     setShareOpen(false);
+  }
+  async function openShareTo() {
+    setShareOpen(false);
+    if (!me) return;
+    const { data: fr } = await supabase
+      .from("friendships")
+      .select("requester_id, addressee_id, status")
+      .or(`requester_id.eq.${me},addressee_id.eq.${me}`);
+    const friendIds = (fr ?? [])
+      .filter((f) => f.status === "accepted")
+      .map((f) => (f.requester_id === me ? f.addressee_id : f.requester_id));
+    if (friendIds.length === 0) {
+      setShareFriends([]);
+      setShareToOpen(true);
+      return;
+    }
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, nickname, fixed_id, avatar_url")
+      .in("id", friendIds);
+    setShareFriends(profs ?? []);
+    setShareToOpen(true);
+  }
+  async function sendToFriend(friendId: string) {
+    const { data: convId, error: e1 } = await supabase.rpc("get_or_create_direct_conversation", {
+      _other_user: friendId,
+    });
+    if (e1 || !convId) {
+      toast.error(e1?.message ?? "—");
+      return;
+    }
+    const url = `${window.location.origin}/post/${post.id}`;
+    const { error } = await supabase.from("messages").insert({
+      conversation_id: convId as string,
+      sender_id: me,
+      content: `${t("chats.sharedPost")}: ${url}`,
+    });
+    if (error) toast.error(error.message);
+    else toast.success(t("feed.linkCopied"));
+    setShareToOpen(false);
+  }
+
+  // Bookmark state
+  const [bookmarked, setBookmarked] = useState(false);
+  useEffect(() => {
+    if (!me) return;
+    (async () => {
+      const { data } = await supabase
+        .from("post_bookmarks")
+        .select("post_id")
+        .eq("user_id", me)
+        .eq("post_id", post.id)
+        .maybeSingle();
+      setBookmarked(!!data);
+    })();
+  }, [me, post.id]);
+  async function toggleBookmark() {
+    if (!me) return;
+    const next = !bookmarked;
+    setBookmarked(next);
+    if (next) {
+      const { error } = await supabase.from("post_bookmarks").insert({ user_id: me, post_id: post.id });
+      if (error && !error.message.includes("duplicate")) {
+        setBookmarked(false);
+        toast.error(error.message);
+      } else toast.success(t("feed.bookmarked"));
+    } else {
+      const { error } = await supabase
+        .from("post_bookmarks")
+        .delete()
+        .eq("user_id", me)
+        .eq("post_id", post.id);
+      if (error) {
+        setBookmarked(true);
+        toast.error(error.message);
+      }
+    }
   }
 
   const topComments = comments.filter((c) => !c.parent_id);
