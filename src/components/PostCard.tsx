@@ -483,7 +483,7 @@ export function PostCard({
           )}
           {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}
 
-          <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
+          <div className="flex items-center gap-5 mt-3 text-sm text-muted-foreground">
             <button
               onClick={() => react("like")}
               className={`flex items-center gap-1.5 ${myReaction === "like" ? "text-primary" : ""}`}
@@ -506,6 +506,14 @@ export function PostCard({
             >
               <Repeat2 className="h-4 w-4" /> {repostCount}
             </button>
+            <div className="flex-1" />
+            <button
+              onClick={toggleBookmark}
+              className={`flex items-center gap-1.5 hover:text-foreground ${bookmarked ? "text-primary" : ""}`}
+              aria-label={t("feed.bookmark")}
+            >
+              <Bookmark className={`h-4 w-4 ${bookmarked ? "fill-current" : ""}`} />
+            </button>
             <div className="relative">
               <button
                 onClick={() => setShareOpen((v) => !v)}
@@ -522,18 +530,49 @@ export function PostCard({
                   >
                     <Link2 className="h-4 w-4" /> {t("feed.copyLink")}
                   </button>
-                  <Link
-                    to="/conversations"
-                    search={{ share: post.id } as any}
-                    onClick={() => setShareOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-secondary"
+                  <button
+                    onClick={openShareTo}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
                   >
                     <Send className="h-4 w-4" /> {t("feed.shareToChat")}
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
           </div>
+          {shareToOpen && (
+            <div
+              className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center p-3"
+              onClick={() => setShareToOpen(false)}
+            >
+              <div
+                className="w-full md:max-w-sm rounded-2xl bg-popover border border-border p-3"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="font-semibold mb-2">{t("chats.chooseFriend")}</h3>
+                {shareFriends.length === 0 ? (
+                  <p className="text-sm text-muted-foreground p-2">—</p>
+                ) : (
+                  <ul className="max-h-80 overflow-y-auto">
+                    {shareFriends.map((f) => (
+                      <li key={f.id}>
+                        <button
+                          onClick={() => sendToFriend(f.id)}
+                          className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary text-left"
+                        >
+                          <Avatar url={f.avatar_url} name={f.nickname} size={36} />
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate font-medium">{f.nickname}</div>
+                            <div className="truncate text-xs text-muted-foreground">@{f.fixed_id}</div>
+                          </div>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
 
           {open && (
             <div className="mt-4 space-y-3">
