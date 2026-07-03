@@ -33,6 +33,16 @@ function ConvList() {
   const [groupName, setGroupName] = useState("");
   const [groupSel, setGroupSel] = useState<string[]>([]);
   const [query, setQuery] = useState("");
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuFor(null);
+    };
+    window.addEventListener("mousedown", h);
+    return () => window.removeEventListener("mousedown", h);
+  }, []);
 
   async function refresh() {
     const {
