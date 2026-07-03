@@ -97,10 +97,22 @@ function ConvList() {
           lastAt: lastMsg?.created_at,
         };
       });
-      rows.sort((a, b) => (b.lastAt ?? "").localeCompare(a.lastAt ?? ""));
+      const { data: pins } = await supabase
+        .from("conversation_pins")
+        .select("conversation_id")
+        .eq("user_id", user.id);
+      const pinSet = new Set((pins ?? []).map((p) => p.conversation_id));
+      setPinnedIds(pinSet);
+      rows.sort((a, b) => {
+        const pa = pinSet.has(a.id) ? 1 : 0;
+        const pb = pinSet.has(b.id) ? 1 : 0;
+        if (pa !== pb) return pb - pa;
+        return (b.lastAt ?? "").localeCompare(a.lastAt ?? "");
+      });
       setConvs(rows);
     } else {
       setConvs([]);
+      setPinnedIds(new Set());
     }
 
     const { data: fr } = await supabase
