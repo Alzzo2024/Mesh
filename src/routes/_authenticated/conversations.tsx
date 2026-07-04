@@ -150,8 +150,8 @@ function ConvList() {
 
   async function sendFriendRequest() {
     if (!me) return;
-    const code = addId.trim().toUpperCase();
-    if (code.length !== 6) return toast.error("ID inválido");
+    const code = addId.trim().replace(/^@/, "").toUpperCase();
+    if (!/^[A-Z0-9]{1,10}$/.test(code)) return toast.error("ID inválido");
     const { data: prof } = await supabase.from("profiles").select("id").eq("fixed_id", code).maybeSingle();
     if (!prof) return toast.error("Utilizador não encontrado");
     if (prof.id === me) return toast.error("Não te podes adicionar a ti próprio");
@@ -227,9 +227,9 @@ function ConvList() {
         <div className="flex gap-2">
           <input
             value={addId}
-            onChange={(e) => setAddId(e.target.value.toUpperCase())}
+            onChange={(e) => setAddId(e.target.value.replace(/^@/, "").toUpperCase())}
             placeholder={t("chats.fixedIdPlaceholder")}
-            maxLength={6}
+            maxLength={10}
             className="flex-1 bg-input border border-border rounded-xl px-4 py-2.5 font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button

@@ -42,7 +42,7 @@ function SearchPage() {
     const tagSearch = term.startsWith("#");
     const id = setTimeout(async () => {
       if (tab === "people") {
-        const t2 = term.replace(/^#/, "");
+        const t2 = term.replace(/^[#@]/, "");
         const { data } = await supabase
           .from("profiles")
           .select("id, fixed_id, nickname, avatar_url, bio")
