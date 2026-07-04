@@ -25,9 +25,10 @@ export async function resolveMentions(
     .from("profiles")
     .select("id, fixed_id")
     .in("fixed_id", ids);
-  if (!profs.length) return { content: text, userIds: [] };
+  const profiles = profs ?? [];
+  if (!profiles.length) return { content: text, userIds: [] };
 
-  const idMap = new Map(profs.map((p) => [p.fixed_id.toUpperCase(), p]));
+  const idMap = new Map(profiles.map((p) => [p.fixed_id.toUpperCase(), p]));
 
   const userIds = new Set<string>();
   const content = text.replace(MENTION_RE, (full, pre: string, token: string) => {

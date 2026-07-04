@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { SignedImage, resolveSignedUrl } from "@/components/SignedImage";
-import { extractHashtags, tokenizeHashtags } from "@/lib/hashtags";
+import { extractHashtags } from "@/lib/hashtags";
 import { TrustBadge } from "@/components/TrustBadge";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { EmojiPicker } from "@/components/EmojiPicker";
