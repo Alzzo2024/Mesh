@@ -29,23 +29,30 @@ export function FollowButton({ targetUserId }: { targetUserId: string }) {
   if (!me || me === targetUserId) return null;
 
   async function toggle() {
+    if (!me || me === targetUserId) return;
     setBusy(true);
-    if (following) {
-      const { error } = await supabase
-        .from("follows")
-        .delete()
-        .eq("follower_id", me!)
-        .eq("following_id", targetUserId);
-      if (error) toast.error(error.message);
-      else setFollowing(false);
-    } else {
-      const { error } = await supabase
-        .from("follows")
-        .insert({ follower_id: me!, following_id: targetUserId });
-      if (error) toast.error(error.message);
-      else setFollowing(true);
+    try {
+      if (following) {
+        const { error } = await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", me)
+          .eq("following_id", targetUserId);
+        if (error) toast.error(error.message);
+        else setFollowing(false);
+      } else {
+        const { error } = await supabase
+          .from("follows")
+          .upsert(
+            { follower_id: me, following_id: targetUserId },
+            { onConflict: "follower_id,following_id", ignoreDuplicates: true },
+          );
+        if (error) toast.error(error.message);
+        else setFollowing(true);
+      }
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   return (

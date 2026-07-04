@@ -47,12 +47,42 @@ type CommentRow = {
   profile?: FeedProfile;
 };
 
-function HashtagText({ text }: { text: string }) {
+const CONTENT_TOKEN_RE = /(^|[^@\w])@([A-Za-z0-9]{1,10})\b|#([\p{L}0-9_]{1,40})/gu;
+
+function ContentText({ text }: { text: string }) {
+  const parts: Array<string | { type: "mention"; id: string } | { type: "hashtag"; tag: string }> = [];
+  let last = 0;
+  for (const match of text.matchAll(CONTENT_TOKEN_RE)) {
+    if (match[2]) {
+      const pre = match[1] ?? "";
+      const tokenStart = match.index! + pre.length;
+      if (tokenStart > last) parts.push(text.slice(last, tokenStart));
+      parts.push({ type: "mention", id: match[2].toUpperCase() });
+      last = tokenStart + match[2].length + 1;
+      continue;
+    }
+    if (match[3]) {
+      if (match.index! > last) parts.push(text.slice(last, match.index));
+      parts.push({ type: "hashtag", tag: match[3] });
+      last = match.index! + match[0].length;
+    }
+  }
+  if (last < text.length) parts.push(text.slice(last));
+
   return (
     <>
-      {tokenizeHashtags(text).map((part, i) =>
+      {parts.map((part, i) =>
         typeof part === "string" ? (
           <span key={i}>{part}</span>
+        ) : part.type === "mention" ? (
+          <Link
+            key={i}
+            to="/u/$fixedId"
+            params={{ fixedId: part.id }}
+            className="text-primary hover:underline"
+          >
+            @{part.id}
+          </Link>
         ) : (
           <Link
             key={i}
@@ -467,7 +497,7 @@ export function PostCard({
             </div>
           ) : (
             <p className="mt-1 whitespace-pre-wrap break-words">
-              <HashtagText text={post.content} />
+              <ContentText text={post.content} />
             </p>
           )}
           <Link to="/post/$id" params={{ id: post.id }} className="mt-1 inline-block text-xs text-muted-foreground hover:text-primary">
