@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
 import { PostCard, hydratePosts, type FeedPost } from "@/components/PostCard";
+import { SideBlocks } from "@/components/SideBlocks";
 
 export const Route = createFileRoute("/_authenticated/search")({
   head: () => ({ meta: [{ title: "Mesh — Pesquisar" }] }),
@@ -41,7 +42,7 @@ function SearchPage() {
     const tagSearch = term.startsWith("#");
     const id = setTimeout(async () => {
       if (tab === "people") {
-        const t2 = term.replace(/^#/, "");
+        const t2 = term.replace(/^[#@]/, "");
         const { data } = await supabase
           .from("profiles")
           .select("id, fixed_id, nickname, avatar_url, bio")
@@ -114,7 +115,14 @@ function SearchPage() {
         </div>
       </header>
 
-      {!q.trim() && <p className="p-8 text-center text-muted-foreground">{t("search.start")}</p>}
+      {!q.trim() && (
+        <>
+          <p className="px-8 pt-8 pb-4 text-center text-muted-foreground">{t("search.start")}</p>
+          <div className="md:hidden px-4 pb-6">
+            <SideBlocks />
+          </div>
+        </>
+      )}
 
       {tab === "people" && q.trim() && (
         <ul>

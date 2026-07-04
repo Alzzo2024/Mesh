@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Settings, LinkIcon } from "lucide-react";
+import { Bookmark, Settings, LinkIcon, X } from "lucide-react";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { resolveSignedUrl, SignedImage } from "@/components/SignedImage";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,8 @@ function ProfilePage() {
   const [me, setMe] = useState<string | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [comments, setComments] = useState<any[]>([]);
+  const [savedPosts, setSavedPosts] = useState<FeedPost[]>([]);
+  const [savedOpen, setSavedOpen] = useState(false);
   const [tab, setTab] = useState<"posts" | "gallery" | "comments">("posts");
   const [counts, setCounts] = useState({ followers: 0, following: 0 });
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -93,6 +95,32 @@ function ProfilePage() {
     setLoaded(true);
   }
 
+  async function openSaved() {
+    if (!me) return;
+    setSavedOpen(true);
+    const { data: marks } = await supabase
+      .from("post_bookmarks")
+      .select("post_id, created_at")
+      .eq("user_id", me)
+      .order("created_at", { ascending: false });
+    const ids = (marks ?? []).map((m) => m.post_id);
+    if (ids.length === 0) {
+      setSavedPosts([]);
+      return;
+    }
+    const { data } = await supabase
+      .from("posts")
+      .select("id, user_id, content, created_at, image_path, hashtags, pinned_at")
+      .in("id", ids);
+    if (!data?.length) {
+      setSavedPosts([]);
+      return;
+    }
+    const order = new Map(ids.map((id, index) => [id, index]));
+    const hydrated = await hydratePosts(data as any, me);
+    setSavedPosts(hydrated.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)));
+  }
+
   useEffect(() => {
     load();
   }, []);
@@ -110,14 +138,24 @@ function ProfilePage() {
         {profile.banner_url && (
           <SignedImage path={profile.banner_url} className="w-full h-full object-cover" />
         )}
-        <Link
-          to="/profile/settings"
-          className="absolute top-3 right-3 rounded-full bg-background/80 p-2 flex items-center gap-1.5 text-xs px-3"
-          aria-label={t("profile.editAppearance")}
-        >
-          <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">{t("profile.editAppearance")}</span>
-        </Link>
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <button
+            onClick={openSaved}
+            className="rounded-full bg-background/80 p-2 flex items-center gap-1.5 text-xs px-3 hover:bg-background"
+            aria-label={t("feed.savedPosts")}
+          >
+            <Bookmark className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("feed.savedPosts")}</span>
+          </button>
+          <Link
+            to="/profile/settings"
+            className="rounded-full bg-background/80 p-2 flex items-center gap-1.5 text-xs px-3 hover:bg-background"
+            aria-label={t("profile.editAppearance")}
+          >
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("profile.editAppearance")}</span>
+          </Link>
+        </div>
       </div>
 
       <div className="px-4 -mt-10 relative">
@@ -192,6 +230,34 @@ function ProfilePage() {
       )}
 
       {lightbox && <ImageLightbox src={lightbox} onClose={() => setLightbox(null)} />}
+
+      {savedOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-end md:items-center justify-center p-3"
+          onClick={() => setSavedOpen(false)}
+        >
+          <div
+            className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-t-2xl md:rounded-2xl border border-border bg-background shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
+              <h2 className="font-semibold">{t("feed.savedPosts")}</h2>
+              <button onClick={() => setSavedOpen(false)} className="rounded-full p-2 hover:bg-secondary">
+                <X className="h-4 w-4" />
+              </button>
+            </header>
+            {savedPosts.length === 0 ? (
+              <p className="p-8 text-center text-muted-foreground">{t("search.empty")}</p>
+            ) : (
+              <ul>
+                {savedPosts.map((p) => (
+                  <PostCard key={p.id} post={p} me={me} onDeleted={openSaved} />
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {tab === "comments" && (
         <ul>

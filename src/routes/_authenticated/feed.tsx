@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
 import { PostCard, loadFeed, type FeedPost } from "@/components/PostCard";
 import { PostComposer } from "@/components/PostComposer";
+import { SideBlocks } from "@/components/SideBlocks";
 
 export const Route = createFileRoute("/_authenticated/feed")({
   head: () => ({ meta: [{ title: "Mesh — Feed" }] }),
@@ -36,7 +37,11 @@ function FeedPage() {
   }, []);
 
   return (
-    <div>
+    <div className="xl:-translate-x-44">
+      <aside className="hidden xl:block fixed right-6 top-6 w-80">
+        <SideBlocks refreshKey={posts.length} />
+      </aside>
+
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
         <h1 className="text-2xl text-primary">
           <MeshWord />

@@ -150,8 +150,8 @@ function ConvList() {
 
   async function sendFriendRequest() {
     if (!me) return;
-    const code = addId.trim().toUpperCase();
-    if (code.length !== 6) return toast.error("ID inválido");
+    const code = addId.trim().replace(/^@/, "").toUpperCase();
+    if (!/^[A-Z0-9]{1,10}$/.test(code)) return toast.error("ID inválido");
     const { data: prof } = await supabase.from("profiles").select("id").eq("fixed_id", code).maybeSingle();
     if (!prof) return toast.error("Utilizador não encontrado");
     if (prof.id === me) return toast.error("Não te podes adicionar a ti próprio");
@@ -227,9 +227,9 @@ function ConvList() {
         <div className="flex gap-2">
           <input
             value={addId}
-            onChange={(e) => setAddId(e.target.value.toUpperCase())}
+            onChange={(e) => setAddId(e.target.value.replace(/^@/, "").toUpperCase())}
             placeholder={t("chats.fixedIdPlaceholder")}
-            maxLength={6}
+            maxLength={10}
             className="flex-1 bg-input border border-border rounded-xl px-4 py-2.5 font-mono uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <button
@@ -322,7 +322,7 @@ function ConvList() {
               <Link
                 to="/conversations/$id"
                 params={{ id: c.id }}
-                className="flex items-center gap-3 px-4 py-3 border-b border-border hover:bg-secondary/40"
+                className="flex items-center gap-3 px-4 py-3 pr-14 border-b border-border hover:bg-secondary/40"
               >
                 <Avatar
                   url={c.type === "direct" ? c.other?.avatar_url : null}
@@ -344,7 +344,7 @@ function ConvList() {
                   <div className="text-xs text-muted-foreground truncate">{c.lastMessage}</div>
                 </div>
               </Link>
-              <div className="absolute right-2 top-1/2 -translate-y-1/2" ref={menuFor === c.id ? menuRef : undefined}>
+              <div className="absolute right-2 top-1/2 z-40 -translate-y-1/2" ref={menuFor === c.id ? menuRef : undefined}>
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -356,7 +356,7 @@ function ConvList() {
                   <MoreVertical className="h-4 w-4" />
                 </button>
                 {menuFor === c.id && (
-                  <div className="absolute right-0 top-full mt-1 z-20 min-w-40 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+                  <div className="absolute right-0 top-full mt-1 z-50 min-w-44 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
                     <button
                       onClick={async (e) => {
                         e.preventDefault();
@@ -374,7 +374,7 @@ function ConvList() {
                       }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-secondary"
                     >
-                      <Pin className="h-4 w-4" /> {pinnedIds.has(c.id) ? "—" : t("chats.pinned")}
+                      <Pin className="h-4 w-4" /> {pinnedIds.has(c.id) ? t("chats.unpin") : t("chats.pin")}
                     </button>
                     <button
                       onClick={async (e) => {
