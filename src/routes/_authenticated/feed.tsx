@@ -37,7 +37,7 @@ function FeedPage() {
   }, []);
 
   return (
-    <div>
+    <div className="xl:-translate-x-44">
       <aside className="hidden xl:block fixed right-6 top-6 w-80">
         <SideBlocks refreshKey={posts.length} />
       </aside>
