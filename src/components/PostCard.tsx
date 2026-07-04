@@ -379,7 +379,6 @@ export function PostCard({
         toast.error(error.message);
       } else {
         toast.success(t("feed.bookmarked"));
-        onDeleted?.();
       }
     } else {
       const { error } = await supabase
