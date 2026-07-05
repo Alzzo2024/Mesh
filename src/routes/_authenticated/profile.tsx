@@ -141,7 +141,7 @@ function ProfilePage() {
         <div className="absolute top-3 right-3 flex items-center gap-2">
           <button
             onClick={openSaved}
-            className="rounded-full bg-background/80 p-2 flex items-center gap-1.5 text-xs px-3 hover:bg-background"
+            className="md:hidden rounded-full bg-background/80 p-2 flex items-center gap-1.5 text-xs px-3 hover:bg-background"
             aria-label={t("feed.savedPosts")}
           >
             <Bookmark className="h-4 w-4" />
