@@ -75,8 +75,16 @@ export function SuggestionsBlock({ refreshKey = 0 }: { refreshKey?: number }) {
       const { data } = await supabase
         .from("profiles")
         .select("id, nickname, fixed_id, avatar_url")
-        .limit(50);
-      let list = (data ?? []).filter((p) => p.id !== user?.id);
+        .limit(200);
+      // Dedupe by id (defensive)
+      const seen = new Set<string>();
+      let list: Prof[] = [];
+      for (const p of data ?? []) {
+        if (seen.has(p.id)) continue;
+        seen.add(p.id);
+        list.push(p as Prof);
+      }
+      list = list.filter((p) => p.id !== user?.id);
       if (user) {
         const { data: fol } = await supabase
           .from("follows")
@@ -85,8 +93,11 @@ export function SuggestionsBlock({ refreshKey = 0 }: { refreshKey?: number }) {
         const set = new Set((fol ?? []).map((x) => x.following_id));
         list = list.filter((p) => !set.has(p.id));
       }
-      // shuffle
-      list.sort(() => Math.random() - 0.5);
+      // Fisher-Yates shuffle
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
       setProfs(list.slice(0, 5));
     })();
   }, [refreshKey]);
