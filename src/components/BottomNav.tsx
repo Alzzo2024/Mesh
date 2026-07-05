@@ -40,7 +40,7 @@ export function BottomNav() {
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         <ul className="mx-auto max-w-xl grid grid-cols-5">
-          {items.map(({ to, icon: Icon, label, dot }) => {
+          {mobileItems.map(({ to, icon: Icon, label, dot }) => {
             const active = path === to || path.startsWith(to + "/");
             return (
               <li key={to}>
