@@ -178,7 +178,6 @@ const ptPT: Dict = {
 const ptBR: Dict = { ...ptPT, "feed.placeholder": "O que está rolando?", "auth.toggle.toSignup": "Não tem conta? Criar uma", "auth.toggle.toSignin": "Já tem conta? Entrar" };
 
 const enGB: Dict = {
-const enGB: Dict = {
   ...ptPT,
   "nav.feed": "Feed", "nav.search": "Search", "nav.chats": "Chats", "nav.notifications": "Notifications", "nav.profile": "Profile", "nav.saved": "Saved",
   "auth.signin": "Sign in", "auth.signup": "Create account", "auth.email": "Email", "auth.password": "Password", "auth.nickname": "Username",
