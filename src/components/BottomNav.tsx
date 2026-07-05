@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Flame, Search, MessageCircle, User, Bell, Pencil } from "lucide-react";
+import { Flame, Search, MessageCircle, User, Bell, Pencil, Bookmark } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
 import { useUnreadCounts } from "@/lib/use-unread";
@@ -10,11 +10,20 @@ export function BottomNav() {
   const unread = useUnreadCounts();
   const navigate = useNavigate();
 
-  const items = [
+  const mobileItems = [
     { to: "/feed", icon: Flame, label: t("nav.feed"), dot: 0 },
     { to: "/search", icon: Search, label: t("nav.search"), dot: 0 },
     { to: "/conversations", icon: MessageCircle, label: t("nav.chats"), dot: unread.messages },
     { to: "/notifications", icon: Bell, label: t("nav.notifications"), dot: unread.notifications },
+    { to: "/profile", icon: User, label: t("nav.profile"), dot: 0 },
+  ] as const;
+
+  const desktopItems = [
+    { to: "/feed", icon: Flame, label: t("nav.feed"), dot: 0 },
+    { to: "/search", icon: Search, label: t("nav.search"), dot: 0 },
+    { to: "/conversations", icon: MessageCircle, label: t("nav.chats"), dot: unread.messages },
+    { to: "/notifications", icon: Bell, label: t("nav.notifications"), dot: unread.notifications },
+    { to: "/saved", icon: Bookmark, label: t("nav.saved"), dot: 0 },
     { to: "/profile", icon: User, label: t("nav.profile"), dot: 0 },
   ] as const;
 
