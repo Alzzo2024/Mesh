@@ -81,7 +81,6 @@ const ptPT: Dict = {
   "chats.deleteConfirm": "Eliminar esta conversa? Esta ação é irreversível.",
   "chats.addMember": "Adicionar pessoa",
   "chats.editGroup": "Editar grupo",
-  "chats.changePhoto": "Mudar foto",
   "chat.placeholder": "Mensagem…",
   "chat.reply": "Responder",
   "chat.react": "Reagir",
