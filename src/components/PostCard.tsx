@@ -735,6 +735,12 @@ function CommentItem({
                   )}
                 </div>
                 <p className="text-sm">{r.content}</p>
+                <button
+                  onClick={() => onReply(r.id)}
+                  className="text-xs text-muted-foreground hover:text-primary mt-0.5"
+                >
+                  {t("feed.reply")}
+                </button>
               </div>
             </div>
           ))}
