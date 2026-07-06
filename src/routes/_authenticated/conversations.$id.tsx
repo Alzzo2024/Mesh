@@ -46,6 +46,7 @@ function ChatPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<string | null>(null);
   const [conv, setConv] = useState<any>(null);
+  const [members, setMembers] = useState<{ user_id: string; is_admin: boolean }[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [messages, setMessages] = useState<Msg[]>([]);
   const [reactions, setReactions] = useState<Record<string, MessageReaction[]>>({});
@@ -56,12 +57,19 @@ function ChatPage() {
   const [activeMsg, setActiveMsg] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
+  const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [friends, setFriends] = useState<any[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+  const iAmAdmin = !!members.find((m) => m.user_id === me)?.is_admin;
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
