@@ -77,12 +77,13 @@ function ChatPage() {
     setMe(user.id);
 
     const { data: c } = await supabase
-      .from("conversations").select("id, type, name").eq("id", id).single();
+      .from("conversations").select("id, type, name, avatar_url, created_by").eq("id", id).single();
     setConv(c);
 
-    const { data: members } = await supabase
-      .from("conversation_members").select("user_id").eq("conversation_id", id);
-    const ids = (members ?? []).map((m) => m.user_id);
+    const { data: mem } = await supabase
+      .from("conversation_members").select("user_id, is_admin").eq("conversation_id", id);
+    setMembers((mem as any) ?? []);
+    const ids = (mem ?? []).map((m: any) => m.user_id);
     const { data: profs } = await supabase
       .from("profiles").select("id, nickname, fixed_id, avatar_url")
       .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
