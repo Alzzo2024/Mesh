@@ -250,7 +250,7 @@ const esES: Dict = { ...enGB,
   "side.trends":"Tendencias","side.suggestions":"Sugerencias",
 };
 const itIT: Dict = { ...enGB,
-  "nav.feed":"Feed","nav.search":"Cerca","nav.chats":"Chat","nav.notifications":"Notifiche","nav.profile":"Profilo","nav.saved":"Salvati",
+  "nav.feed":"Feed","nav.search":"Cerca","nav.chats":"Chat","nav.notifications":"Notifiche","nav.profile":"Profilo","nav.saved":"Salvati","nav.settings":"Impostazioni",
   "auth.welcome":"Benvenuto su","auth.signin":"Accedi","auth.signup":"Crea account","auth.password":"Password","auth.nickname":"Utente",
   "feed.placeholder":"Cosa succede?","feed.post":"Pubblica","feed.newPost":"Nuovo post","feed.empty":"Ancora nessun post.",
   "feed.comments":"Commenti","feed.send":"Invia","feed.reply":"Rispondi","feed.delete":"Elimina","feed.share":"Condividi",
