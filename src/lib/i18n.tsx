@@ -280,7 +280,7 @@ const deDE: Dict = { ...enGB,
   "side.trends":"Trends","side.suggestions":"Vorschläge",
 };
 const frFR: Dict = { ...enGB,
-  "nav.feed":"Fil","nav.search":"Rechercher","nav.chats":"Discussions","nav.notifications":"Notifications","nav.profile":"Profil","nav.saved":"Enregistrés",
+  "nav.feed":"Fil","nav.search":"Rechercher","nav.chats":"Discussions","nav.notifications":"Notifications","nav.profile":"Profil","nav.saved":"Enregistrés","nav.settings":"Paramètres",
   "auth.welcome":"Bienvenue sur","auth.signin":"Se connecter","auth.signup":"Créer un compte","auth.password":"Mot de passe","auth.nickname":"Nom d'utilisateur",
   "feed.placeholder":"Quoi de neuf ?","feed.post":"Publier","feed.newPost":"Nouvelle publication","feed.empty":"Aucune publication pour l'instant.",
   "feed.comments":"Commentaires","feed.send":"Envoyer","feed.reply":"Répondre","feed.delete":"Supprimer","feed.share":"Partager",
