@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
-import { ArrowLeft, Send, Image as ImageIcon, X, Reply, MoreVertical, Trash2, UserPlus, Search } from "lucide-react";
+import { ArrowLeft, Send, Image as ImageIcon, X, Reply, MoreVertical, Trash2, UserPlus, Search, Settings, Crown } from "lucide-react";
 import { resolveSignedUrl } from "@/components/SignedImage";
 import { EmojiPicker } from "@/components/EmojiPicker";
 import { ImageLightbox } from "@/components/ImageLightbox";
@@ -46,6 +46,7 @@ function ChatPage() {
   const navigate = useNavigate();
   const [me, setMe] = useState<string | null>(null);
   const [conv, setConv] = useState<any>(null);
+  const [members, setMembers] = useState<{ user_id: string; is_admin: boolean }[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [messages, setMessages] = useState<Msg[]>([]);
   const [reactions, setReactions] = useState<Record<string, MessageReaction[]>>({});
@@ -56,12 +57,19 @@ function ChatPage() {
   const [activeMsg, setActiveMsg] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
+  const [editAvatarPreview, setEditAvatarPreview] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [friends, setFriends] = useState<any[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+  const iAmAdmin = !!members.find((m) => m.user_id === me)?.is_admin;
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -69,12 +77,13 @@ function ChatPage() {
     setMe(user.id);
 
     const { data: c } = await supabase
-      .from("conversations").select("id, type, name").eq("id", id).single();
+      .from("conversations").select("id, type, name, avatar_url, created_by").eq("id", id).single();
     setConv(c);
 
-    const { data: members } = await supabase
-      .from("conversation_members").select("user_id").eq("conversation_id", id);
-    const ids = (members ?? []).map((m) => m.user_id);
+    const { data: mem } = await supabase
+      .from("conversation_members").select("user_id, is_admin").eq("conversation_id", id);
+    setMembers((mem as any) ?? []);
+    const ids = (mem ?? []).map((m: any) => m.user_id);
     const { data: profs } = await supabase
       .from("profiles").select("id, nickname, fixed_id, avatar_url")
       .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
@@ -207,10 +216,57 @@ function ChatPage() {
     load();
   }
 
+  function openEditGroup() {
+    setEditName(conv?.name ?? "");
+    setEditAvatarFile(null);
+    setEditAvatarPreview(null);
+    setEditOpen(true);
+    setMenuOpen(false);
+  }
+
+  function pickAvatar(file: File | undefined) {
+    if (!file) return;
+    if (editAvatarPreview) URL.revokeObjectURL(editAvatarPreview);
+    setEditAvatarFile(file);
+    setEditAvatarPreview(URL.createObjectURL(file));
+  }
+
+  async function saveGroup() {
+    if (!me) return;
+    setSavingEdit(true);
+    try {
+      let newAvatar: string | null = null;
+      if (editAvatarFile) {
+        const ext = editAvatarFile.name.split(".").pop() || "jpg";
+        const path = `group-${id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("avatars").upload(path, editAvatarFile, { upsert: true });
+        if (upErr) { toast.error(upErr.message); setSavingEdit(false); return; }
+        newAvatar = `avatars/${path}`;
+      }
+      const { error } = await supabase.rpc("update_conversation_meta", {
+        _conv: id,
+        _name: (editName.trim() || null) as any,
+        _avatar: newAvatar as any,
+      });
+      if (error) { toast.error(error.message); setSavingEdit(false); return; }
+      setEditOpen(false);
+      if (editAvatarPreview) URL.revokeObjectURL(editAvatarPreview);
+      setEditAvatarPreview(null);
+      setEditAvatarFile(null);
+      load();
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   const title =
     conv?.type === "direct"
       ? Object.values(profiles).find((p: any) => p.id !== me)?.nickname ?? ""
       : conv?.name ?? "";
+  const headerAvatarUrl = conv?.type === "direct"
+    ? Object.values(profiles).find((p: any) => p.id !== me)?.avatar_url ?? null
+    : conv?.avatar_url ?? null;
+  const headerAvatarName = title;
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden pb-16 md:pb-0">
@@ -218,7 +274,13 @@ function ChatPage() {
         <Link to="/conversations" className="p-2 -ml-1 rounded-full hover:bg-secondary">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="font-semibold flex-1 truncate">{title}</h1>
+        <Avatar url={headerAvatarUrl} name={headerAvatarName} size={32} />
+        <h1 className="font-semibold flex-1 truncate flex items-center gap-1.5 min-w-0">
+          <span className="truncate">{title}</span>
+          {conv?.type === "group" && iAmAdmin && (
+            <Crown className="h-3.5 w-3.5 text-primary shrink-0" aria-label="admin" />
+          )}
+        </h1>
         <button
           onClick={() => setSearchOpen((v) => !v)}
           className="p-2 rounded-full hover:bg-secondary"
@@ -232,7 +294,15 @@ function ChatPage() {
           </button>
           {menuOpen && (
             <div className="absolute right-0 top-full mt-1 z-30 min-w-44 rounded-xl border border-border bg-popover shadow-xl overflow-hidden">
-              {conv?.type === "group" && (
+              {conv?.type === "group" && iAmAdmin && (
+                <button
+                  onClick={openEditGroup}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-secondary"
+                >
+                  <Settings className="h-4 w-4" /> {t("chats.editGroup")}
+                </button>
+              )}
+              {conv?.type === "group" && iAmAdmin && (
                 <button
                   onClick={() => { setMenuOpen(false); setAddOpen(true); loadFriends(); }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-secondary"
@@ -250,6 +320,53 @@ function ChatPage() {
           )}
         </div>
       </header>
+
+      {editOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center p-3" onClick={() => setEditOpen(false)}>
+          <div className="w-full md:max-w-sm rounded-2xl bg-popover border border-border p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold">{t("chats.editGroup")}</h3>
+            <div className="flex items-center gap-3">
+              {editAvatarPreview ? (
+                <img src={editAvatarPreview} alt="" className="h-16 w-16 rounded-full object-cover" />
+              ) : (
+                <Avatar url={conv?.avatar_url} name={conv?.name} size={64} />
+              )}
+              <input
+                ref={avatarFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickAvatar(e.target.files?.[0])}
+              />
+              <button
+                type="button"
+                onClick={() => avatarFileRef.current?.click()}
+                className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-secondary/80"
+              >
+                {t("chats.changePhoto")}
+              </button>
+            </div>
+            <input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder={t("chats.groupName")}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={() => setEditOpen(false)} className="rounded-full bg-secondary px-3 py-1.5 text-sm">
+                {t("common.cancel")}
+              </button>
+              <button
+                disabled={savingEdit}
+                onClick={saveGroup}
+                className="rounded-full bg-primary text-[#1a1a1a] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+              >
+                {t("settings.save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {searchOpen && (
         <div className="border-b border-border bg-background px-3 py-2">

@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type Locale = "pt-PT" | "pt-BR" | "es-ES" | "fr-FR" | "fr-CA" | "de-DE" | "it-IT" | "en-GB" | "en-US";
 
-export const APP_VERSION = "V.0.2.1";
+export const APP_VERSION = "V.2.1.0";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
   { code: "pt-PT", label: "Português", flag: "🇵🇹" },
@@ -25,6 +25,7 @@ const ptPT: Dict = {
   "nav.notifications": "Notificações",
   "nav.profile": "Perfil",
   "nav.saved": "Guardados",
+  "nav.settings": "Configurações",
   "feed.tab.forYou": "Para ti",
   "feed.tab.following": "A seguir",
   "feed.tab.followingEmpty": "Segue pessoas para veres publicações aqui.",
@@ -79,6 +80,7 @@ const ptPT: Dict = {
   "chats.delete": "Eliminar conversa",
   "chats.deleteConfirm": "Eliminar esta conversa? Esta ação é irreversível.",
   "chats.addMember": "Adicionar pessoa",
+  "chats.editGroup": "Editar grupo",
   "chat.placeholder": "Mensagem…",
   "chat.reply": "Responder",
   "chat.react": "Reagir",
@@ -179,7 +181,7 @@ const ptBR: Dict = { ...ptPT, "feed.placeholder": "O que está rolando?", "auth.
 
 const enGB: Dict = {
   ...ptPT,
-  "nav.feed": "Feed", "nav.search": "Search", "nav.chats": "Chats", "nav.notifications": "Notifications", "nav.profile": "Profile", "nav.saved": "Saved",
+  "nav.feed": "Feed", "nav.search": "Search", "nav.chats": "Chats", "nav.notifications": "Notifications", "nav.profile": "Profile", "nav.saved": "Saved", "nav.settings": "Settings",
   "auth.signin": "Sign in", "auth.signup": "Create account", "auth.email": "Email", "auth.password": "Password", "auth.nickname": "Username",
   "auth.toggle.toSignup": "No account? Create one", "auth.toggle.toSignin": "Already have an account? Sign in", "auth.welcome": "Welcome to",
   "feed.placeholder": "What's happening?", "feed.post": "Post", "feed.empty": "No posts yet. Be the first!", "feed.newPost": "New post",
@@ -230,7 +232,7 @@ const enGB: Dict = {
 
 const enUS: Dict = { ...enGB };
 const esES: Dict = { ...enGB,
-  "nav.feed":"Feed","nav.search":"Buscar","nav.chats":"Chats","nav.notifications":"Notificaciones","nav.profile":"Perfil","nav.saved":"Guardados",
+  "nav.feed":"Feed","nav.search":"Buscar","nav.chats":"Chats","nav.notifications":"Notificaciones","nav.profile":"Perfil","nav.saved":"Guardados","nav.settings":"Ajustes",
   "auth.welcome":"Bienvenido a","auth.signin":"Entrar","auth.signup":"Crear cuenta","auth.email":"Correo","auth.password":"Contraseña","auth.nickname":"Usuario",
   "auth.toggle.toSignup":"¿Sin cuenta? Crear una","auth.toggle.toSignin":"¿Ya tienes cuenta? Entrar",
   "feed.placeholder":"¿Qué está pasando?","feed.post":"Publicar","feed.newPost":"Nueva publicación","feed.empty":"Aún no hay publicaciones.",
@@ -249,7 +251,7 @@ const esES: Dict = { ...enGB,
   "side.trends":"Tendencias","side.suggestions":"Sugerencias",
 };
 const itIT: Dict = { ...enGB,
-  "nav.feed":"Feed","nav.search":"Cerca","nav.chats":"Chat","nav.notifications":"Notifiche","nav.profile":"Profilo","nav.saved":"Salvati",
+  "nav.feed":"Feed","nav.search":"Cerca","nav.chats":"Chat","nav.notifications":"Notifiche","nav.profile":"Profilo","nav.saved":"Salvati","nav.settings":"Impostazioni",
   "auth.welcome":"Benvenuto su","auth.signin":"Accedi","auth.signup":"Crea account","auth.password":"Password","auth.nickname":"Utente",
   "feed.placeholder":"Cosa succede?","feed.post":"Pubblica","feed.newPost":"Nuovo post","feed.empty":"Ancora nessun post.",
   "feed.comments":"Commenti","feed.send":"Invia","feed.reply":"Rispondi","feed.delete":"Elimina","feed.share":"Condividi",
@@ -264,7 +266,7 @@ const itIT: Dict = { ...enGB,
   "side.trends":"Tendenze","side.suggestions":"Suggerimenti",
 };
 const deDE: Dict = { ...enGB,
-  "nav.feed":"Feed","nav.search":"Suche","nav.chats":"Chats","nav.notifications":"Mitteilungen","nav.profile":"Profil","nav.saved":"Gespeichert",
+  "nav.feed":"Feed","nav.search":"Suche","nav.chats":"Chats","nav.notifications":"Mitteilungen","nav.profile":"Profil","nav.saved":"Gespeichert","nav.settings":"Einstellungen",
   "auth.welcome":"Willkommen bei","auth.signin":"Anmelden","auth.signup":"Konto erstellen","auth.password":"Passwort","auth.nickname":"Nutzername",
   "feed.placeholder":"Was gibt's Neues?","feed.post":"Posten","feed.newPost":"Neuer Beitrag","feed.empty":"Noch keine Beiträge.",
   "feed.comments":"Kommentare","feed.send":"Senden","feed.reply":"Antworten","feed.delete":"Löschen","feed.share":"Teilen",
@@ -279,7 +281,7 @@ const deDE: Dict = { ...enGB,
   "side.trends":"Trends","side.suggestions":"Vorschläge",
 };
 const frFR: Dict = { ...enGB,
-  "nav.feed":"Fil","nav.search":"Rechercher","nav.chats":"Discussions","nav.notifications":"Notifications","nav.profile":"Profil","nav.saved":"Enregistrés",
+  "nav.feed":"Fil","nav.search":"Rechercher","nav.chats":"Discussions","nav.notifications":"Notifications","nav.profile":"Profil","nav.saved":"Enregistrés","nav.settings":"Paramètres",
   "auth.welcome":"Bienvenue sur","auth.signin":"Se connecter","auth.signup":"Créer un compte","auth.password":"Mot de passe","auth.nickname":"Nom d'utilisateur",
   "feed.placeholder":"Quoi de neuf ?","feed.post":"Publier","feed.newPost":"Nouvelle publication","feed.empty":"Aucune publication pour l'instant.",
   "feed.comments":"Commentaires","feed.send":"Envoyer","feed.reply":"Répondre","feed.delete":"Supprimer","feed.share":"Partager",

@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Flame, Search, MessageCircle, User, Bell, Pencil, Bookmark } from "lucide-react";
+import { Flame, Search, MessageCircle, User, Bell, Pencil, Bookmark, Settings } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
 import { useUnreadCounts } from "@/lib/use-unread";
@@ -25,6 +25,7 @@ export function BottomNav() {
     { to: "/notifications", icon: Bell, label: t("nav.notifications"), dot: unread.notifications },
     { to: "/saved", icon: Bookmark, label: t("nav.saved"), dot: 0 },
     { to: "/profile", icon: User, label: t("nav.profile"), dot: 0 },
+    { to: "/profile/settings", icon: Settings, label: t("nav.settings"), dot: 0 },
   ] as const;
 
   function openComposer() {
