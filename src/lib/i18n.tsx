@@ -231,7 +231,7 @@ const enGB: Dict = {
 
 const enUS: Dict = { ...enGB };
 const esES: Dict = { ...enGB,
-  "nav.feed":"Feed","nav.search":"Buscar","nav.chats":"Chats","nav.notifications":"Notificaciones","nav.profile":"Perfil","nav.saved":"Guardados",
+  "nav.feed":"Feed","nav.search":"Buscar","nav.chats":"Chats","nav.notifications":"Notificaciones","nav.profile":"Perfil","nav.saved":"Guardados","nav.settings":"Ajustes",
   "auth.welcome":"Bienvenido a","auth.signin":"Entrar","auth.signup":"Crear cuenta","auth.email":"Correo","auth.password":"Contraseña","auth.nickname":"Usuario",
   "auth.toggle.toSignup":"¿Sin cuenta? Crear una","auth.toggle.toSignin":"¿Ya tienes cuenta? Entrar",
   "feed.placeholder":"¿Qué está pasando?","feed.post":"Publicar","feed.newPost":"Nueva publicación","feed.empty":"Aún no hay publicaciones.",
