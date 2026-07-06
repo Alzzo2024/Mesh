@@ -25,6 +25,7 @@ const ptPT: Dict = {
   "nav.notifications": "Notificações",
   "nav.profile": "Perfil",
   "nav.saved": "Guardados",
+  "nav.settings": "Configurações",
   "feed.tab.forYou": "Para ti",
   "feed.tab.following": "A seguir",
   "feed.tab.followingEmpty": "Segue pessoas para veres publicações aqui.",
