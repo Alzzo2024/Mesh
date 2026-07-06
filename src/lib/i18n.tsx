@@ -180,7 +180,7 @@ const ptBR: Dict = { ...ptPT, "feed.placeholder": "O que está rolando?", "auth.
 
 const enGB: Dict = {
   ...ptPT,
-  "nav.feed": "Feed", "nav.search": "Search", "nav.chats": "Chats", "nav.notifications": "Notifications", "nav.profile": "Profile", "nav.saved": "Saved",
+  "nav.feed": "Feed", "nav.search": "Search", "nav.chats": "Chats", "nav.notifications": "Notifications", "nav.profile": "Profile", "nav.saved": "Saved", "nav.settings": "Settings",
   "auth.signin": "Sign in", "auth.signup": "Create account", "auth.email": "Email", "auth.password": "Password", "auth.nickname": "Username",
   "auth.toggle.toSignup": "No account? Create one", "auth.toggle.toSignin": "Already have an account? Sign in", "auth.welcome": "Welcome to",
   "feed.placeholder": "What's happening?", "feed.post": "Post", "feed.empty": "No posts yet. Be the first!", "feed.newPost": "New post",
