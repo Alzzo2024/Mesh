@@ -62,7 +62,7 @@ function FeedPage() {
   }, [tab]);
 
   return (
-    <div className="lg:-translate-x-44">
+    <div>
       <aside className="hidden lg:block fixed right-6 top-6 w-80">
         <SideBlocks refreshKey={posts.length} />
       </aside>
