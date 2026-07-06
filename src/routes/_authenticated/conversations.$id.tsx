@@ -274,7 +274,13 @@ function ChatPage() {
         <Link to="/conversations" className="p-2 -ml-1 rounded-full hover:bg-secondary">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="font-semibold flex-1 truncate">{title}</h1>
+        <Avatar url={headerAvatarUrl} name={headerAvatarName} size={32} />
+        <h1 className="font-semibold flex-1 truncate flex items-center gap-1.5 min-w-0">
+          <span className="truncate">{title}</span>
+          {conv?.type === "group" && iAmAdmin && (
+            <Crown className="h-3.5 w-3.5 text-primary shrink-0" aria-label="admin" />
+          )}
+        </h1>
         <button
           onClick={() => setSearchOpen((v) => !v)}
           className="p-2 rounded-full hover:bg-secondary"
@@ -288,7 +294,15 @@ function ChatPage() {
           </button>
           {menuOpen && (
             <div className="absolute right-0 top-full mt-1 z-30 min-w-44 rounded-xl border border-border bg-popover shadow-xl overflow-hidden">
-              {conv?.type === "group" && (
+              {conv?.type === "group" && iAmAdmin && (
+                <button
+                  onClick={openEditGroup}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-secondary"
+                >
+                  <Settings className="h-4 w-4" /> {t("chats.editGroup")}
+                </button>
+              )}
+              {conv?.type === "group" && iAmAdmin && (
                 <button
                   onClick={() => { setMenuOpen(false); setAddOpen(true); loadFriends(); }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-secondary"
@@ -306,6 +320,53 @@ function ChatPage() {
           )}
         </div>
       </header>
+
+      {editOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end md:items-center justify-center p-3" onClick={() => setEditOpen(false)}>
+          <div className="w-full md:max-w-sm rounded-2xl bg-popover border border-border p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold">{t("chats.editGroup")}</h3>
+            <div className="flex items-center gap-3">
+              {editAvatarPreview ? (
+                <img src={editAvatarPreview} alt="" className="h-16 w-16 rounded-full object-cover" />
+              ) : (
+                <Avatar url={conv?.avatar_url} name={conv?.name} size={64} />
+              )}
+              <input
+                ref={avatarFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pickAvatar(e.target.files?.[0])}
+              />
+              <button
+                type="button"
+                onClick={() => avatarFileRef.current?.click()}
+                className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-secondary/80"
+              >
+                {t("chats.changePhoto")}
+              </button>
+            </div>
+            <input
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder={t("chats.groupName")}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={() => setEditOpen(false)} className="rounded-full bg-secondary px-3 py-1.5 text-sm">
+                {t("common.cancel")}
+              </button>
+              <button
+                disabled={savingEdit}
+                onClick={saveGroup}
+                className="rounded-full bg-primary text-[#1a1a1a] px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+              >
+                {t("settings.save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {searchOpen && (
         <div className="border-b border-border bg-background px-3 py-2">
