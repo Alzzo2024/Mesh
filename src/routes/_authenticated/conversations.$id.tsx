@@ -245,8 +245,8 @@ function ChatPage() {
       }
       const { error } = await supabase.rpc("update_conversation_meta", {
         _conv: id,
-        _name: editName.trim() || null,
-        _avatar: newAvatar,
+        _name: (editName.trim() || null) as any,
+        _avatar: newAvatar as any,
       });
       if (error) { toast.error(error.message); setSavingEdit(false); return; }
       setEditOpen(false);
