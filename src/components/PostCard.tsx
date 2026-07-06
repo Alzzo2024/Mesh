@@ -396,13 +396,23 @@ export function PostCard({
   }
 
   const topComments = comments.filter((c) => !c.parent_id);
+  const parentMap = new Map(comments.map((c) => [c.id, c.parent_id] as const));
+  function rootOf(id: string): string {
+    let cur: string = id;
+    let guard = 0;
+    while (parentMap.get(cur) && guard++ < 32) cur = parentMap.get(cur)!;
+    return cur;
+  }
   const repliesByParent = new Map<string, CommentRow[]>();
   for (const c of comments) {
-    if (c.parent_id) {
-      const arr = repliesByParent.get(c.parent_id) ?? [];
-      arr.push(c);
-      repliesByParent.set(c.parent_id, arr);
-    }
+    if (!c.parent_id) continue;
+    const root = rootOf(c.id);
+    const arr = repliesByParent.get(root) ?? [];
+    arr.push(c);
+    repliesByParent.set(root, arr);
+  }
+  for (const arr of repliesByParent.values()) {
+    arr.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   }
 
   return (
