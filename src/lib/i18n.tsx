@@ -265,7 +265,7 @@ const itIT: Dict = { ...enGB,
   "side.trends":"Tendenze","side.suggestions":"Suggerimenti",
 };
 const deDE: Dict = { ...enGB,
-  "nav.feed":"Feed","nav.search":"Suche","nav.chats":"Chats","nav.notifications":"Mitteilungen","nav.profile":"Profil","nav.saved":"Gespeichert",
+  "nav.feed":"Feed","nav.search":"Suche","nav.chats":"Chats","nav.notifications":"Mitteilungen","nav.profile":"Profil","nav.saved":"Gespeichert","nav.settings":"Einstellungen",
   "auth.welcome":"Willkommen bei","auth.signin":"Anmelden","auth.signup":"Konto erstellen","auth.password":"Passwort","auth.nickname":"Nutzername",
   "feed.placeholder":"Was gibt's Neues?","feed.post":"Posten","feed.newPost":"Neuer Beitrag","feed.empty":"Noch keine Beiträge.",
   "feed.comments":"Kommentare","feed.send":"Senden","feed.reply":"Antworten","feed.delete":"Löschen","feed.share":"Teilen",
