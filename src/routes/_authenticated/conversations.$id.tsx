@@ -216,10 +216,57 @@ function ChatPage() {
     load();
   }
 
+  function openEditGroup() {
+    setEditName(conv?.name ?? "");
+    setEditAvatarFile(null);
+    setEditAvatarPreview(null);
+    setEditOpen(true);
+    setMenuOpen(false);
+  }
+
+  function pickAvatar(file: File | undefined) {
+    if (!file) return;
+    if (editAvatarPreview) URL.revokeObjectURL(editAvatarPreview);
+    setEditAvatarFile(file);
+    setEditAvatarPreview(URL.createObjectURL(file));
+  }
+
+  async function saveGroup() {
+    if (!me) return;
+    setSavingEdit(true);
+    try {
+      let newAvatar: string | null = null;
+      if (editAvatarFile) {
+        const ext = editAvatarFile.name.split(".").pop() || "jpg";
+        const path = `group-${id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("avatars").upload(path, editAvatarFile, { upsert: true });
+        if (upErr) { toast.error(upErr.message); setSavingEdit(false); return; }
+        newAvatar = `avatars/${path}`;
+      }
+      const { error } = await supabase.rpc("update_conversation_meta", {
+        _conv: id,
+        _name: editName.trim() || null,
+        _avatar: newAvatar,
+      });
+      if (error) { toast.error(error.message); setSavingEdit(false); return; }
+      setEditOpen(false);
+      if (editAvatarPreview) URL.revokeObjectURL(editAvatarPreview);
+      setEditAvatarPreview(null);
+      setEditAvatarFile(null);
+      load();
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
   const title =
     conv?.type === "direct"
       ? Object.values(profiles).find((p: any) => p.id !== me)?.nickname ?? ""
       : conv?.name ?? "";
+  const headerAvatarUrl = conv?.type === "direct"
+    ? Object.values(profiles).find((p: any) => p.id !== me)?.avatar_url ?? null
+    : conv?.avatar_url ?? null;
+  const headerAvatarName = title;
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden pb-16 md:pb-0">
