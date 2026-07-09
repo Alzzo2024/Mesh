@@ -63,9 +63,9 @@ export function BottomNav() {
       </nav>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex fixed top-0 left-0 h-screen w-60 z-40 border-r border-border bg-background/95 backdrop-blur flex-col py-6 px-4">
+      <aside className="hidden md:flex sticky top-0 h-screen w-60 shrink-0 z-40 border-r border-border bg-background/95 backdrop-blur flex-col py-6 px-4">
         <Link to="/feed" className="px-3 mb-8">
-          <MeshWord className="text-3xl text-primary" />
+          <MeshWord className="text-3xl" />
         </Link>
         <ul className="flex flex-col gap-1">
           {desktopItems.map(({ to, icon: Icon, label, dot }) => {
@@ -92,7 +92,7 @@ export function BottomNav() {
         </ul>
         <button
           onClick={openComposer}
-          className="mt-4 flex items-center justify-center gap-2 rounded-full bg-primary text-[#1a1a1a] font-semibold py-3 hover:opacity-90 transition"
+          className="mt-4 flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 transition"
         >
           <Pencil className="h-4 w-4" />
           {t("feed.post")}
