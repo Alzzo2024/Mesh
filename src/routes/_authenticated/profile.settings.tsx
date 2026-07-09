@@ -25,6 +25,15 @@ function SettingsPage() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [theme, setThemeState] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    return (window.localStorage.getItem("mesh-theme") as "dark" | "light") || "dark";
+  });
+  function setTheme(next: "dark" | "light") {
+    setThemeState(next);
+    window.localStorage.setItem("mesh-theme", next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+  }
   const avatarRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const currentLocale = LOCALES.find((l) => l.code === locale);
