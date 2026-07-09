@@ -119,11 +119,8 @@ export function EmojiPicker({ onPick, align = "left" }: { onPick: (e: string) =>
               <button
                 key={`${tab}-${i}`}
                 type="button"
-                onClick={() => {
-                  onPick(e);
-                  setOpen(false);
-                }}
-                className="text-xl rounded hover:bg-secondary p-1"
+                onClick={() => onPick(e)}
+                className="text-xl rounded hover:bg-secondary p-1 emoji-font"
               >
                 {e}
               </button>
