@@ -63,13 +63,9 @@ function FeedPage() {
 
   return (
     <div>
-      <aside className="hidden lg:block fixed right-6 top-6 w-80">
-        <SideBlocks refreshKey={posts.length} />
-      </aside>
-
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border">
         <div className="md:hidden px-4 py-3 flex items-center justify-between">
-          <h1 className="text-2xl text-primary">
+          <h1 className="text-2xl">
             <MeshWord />
           </h1>
         </div>
