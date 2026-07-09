@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
 import { PostCard, loadFeed, hydratePosts, type FeedPost } from "@/components/PostCard";
 import { PostComposer } from "@/components/PostComposer";
-import { SideBlocks } from "@/components/SideBlocks";
+
 
 export const Route = createFileRoute("/_authenticated/feed")({
   head: () => ({ meta: [{ title: "Mesh — Feed" }] }),
