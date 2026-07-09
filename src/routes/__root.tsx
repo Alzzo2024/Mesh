@@ -81,6 +81,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Sarina&display=swap",
       },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -108,6 +112,11 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    const saved = (typeof window !== "undefined" && window.localStorage.getItem("mesh-theme")) || "dark";
+    document.documentElement.classList.toggle("dark", saved !== "light");
+  }, []);
+
+  useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
@@ -120,7 +129,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <Outlet />
-        <Toaster theme="dark" position="top-center" richColors />
+        <Toaster position="top-center" richColors />
       </I18nProvider>
     </QueryClientProvider>
   );

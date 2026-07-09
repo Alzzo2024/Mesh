@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Flame, Search, MessageCircle, User, Bell, Pencil, Bookmark, Settings } from "lucide-react";
+import { Flame, Search, MessageCircle, User, Bell, Pencil, Bookmark } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
 import { useUnreadCounts } from "@/lib/use-unread";
@@ -23,9 +23,8 @@ export function BottomNav() {
     { to: "/search", icon: Search, label: t("nav.search"), dot: 0 },
     { to: "/conversations", icon: MessageCircle, label: t("nav.chats"), dot: unread.messages },
     { to: "/notifications", icon: Bell, label: t("nav.notifications"), dot: unread.notifications },
-    { to: "/saved", icon: Bookmark, label: t("nav.saved"), dot: 0 },
     { to: "/profile", icon: User, label: t("nav.profile"), dot: 0 },
-    { to: "/profile/settings", icon: Settings, label: t("nav.settings"), dot: 0 },
+    { to: "/saved", icon: Bookmark, label: t("nav.saved"), dot: 0 },
   ] as const;
 
   function openComposer() {
@@ -64,9 +63,9 @@ export function BottomNav() {
       </nav>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex fixed top-0 left-0 h-screen w-60 z-40 border-r border-border bg-background/95 backdrop-blur flex-col py-6 px-4">
+      <aside className="hidden md:flex sticky top-0 h-screen w-60 shrink-0 z-40 border-r border-border bg-background/95 backdrop-blur flex-col py-6 px-4">
         <Link to="/feed" className="px-3 mb-8">
-          <MeshWord className="text-3xl text-primary" />
+          <MeshWord className="text-3xl" />
         </Link>
         <ul className="flex flex-col gap-1">
           {desktopItems.map(({ to, icon: Icon, label, dot }) => {
@@ -93,7 +92,7 @@ export function BottomNav() {
         </ul>
         <button
           onClick={openComposer}
-          className="mt-4 flex items-center justify-center gap-2 rounded-full bg-primary text-[#1a1a1a] font-semibold py-3 hover:opacity-90 transition"
+          className="mt-4 flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground font-semibold py-3 hover:opacity-90 transition"
         >
           <Pencil className="h-4 w-4" />
           {t("feed.post")}

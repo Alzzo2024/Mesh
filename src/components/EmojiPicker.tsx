@@ -108,7 +108,7 @@ export function EmojiPicker({ onPick, align = "left" }: { onPick: (e: string) =>
                 key={i}
                 type="button"
                 onClick={() => setTab(i)}
-                className={`flex-1 min-w-[2.25rem] text-lg py-2 hover:bg-secondary ${i === tab ? "bg-secondary" : ""}`}
+                className={`flex-1 min-w-[2.25rem] text-lg py-2 hover:bg-secondary emoji-font ${i === tab ? "bg-secondary" : ""}`}
               >
                 {c.label}
               </button>
@@ -119,11 +119,8 @@ export function EmojiPicker({ onPick, align = "left" }: { onPick: (e: string) =>
               <button
                 key={`${tab}-${i}`}
                 type="button"
-                onClick={() => {
-                  onPick(e);
-                  setOpen(false);
-                }}
-                className="text-xl rounded hover:bg-secondary p-1"
+                onClick={() => onPick(e)}
+                className="text-xl rounded hover:bg-secondary p-1 emoji-font"
               >
                 {e}
               </button>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, LogOut, Trash2, Camera, Globe, Check } from "lucide-react";
+import { ArrowLeft, LogOut, Trash2, Camera, Globe, Check, Sun, Moon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n, LOCALES, APP_VERSION, type Locale } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -25,6 +25,15 @@ function SettingsPage() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [theme, setThemeState] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    return (window.localStorage.getItem("mesh-theme") as "dark" | "light") || "dark";
+  });
+  function setTheme(next: "dark" | "light") {
+    setThemeState(next);
+    window.localStorage.setItem("mesh-theme", next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+  }
   const avatarRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const currentLocale = LOCALES.find((l) => l.code === locale);
@@ -228,6 +237,29 @@ function SettingsPage() {
             className="h-5 w-5 accent-primary"
           />
         </label>
+
+        <Field label={t("settings.theme") || "Tema"}>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setTheme("dark")}
+              className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm ${
+                theme === "dark" ? "border-primary bg-primary/10 text-primary" : "border-border bg-input"
+              }`}
+            >
+              <Moon className="h-4 w-4" /> {t("settings.themeDark") || "Escuro"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme("light")}
+              className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm ${
+                theme === "light" ? "border-primary bg-primary/10 text-primary" : "border-border bg-input"
+              }`}
+            >
+              <Sun className="h-4 w-4" /> {t("settings.themeLight") || "Claro"}
+            </button>
+          </div>
+        </Field>
 
         <Field label={t("settings.language")}>
           <button

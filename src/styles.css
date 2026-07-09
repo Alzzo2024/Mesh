@@ -2,7 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark, .dark *));
 
 #lovable-badge { display: none !important; }
 
@@ -35,13 +35,47 @@
   --font-display: "Sarina", cursive;
 }
 
+/* Light theme (default) */
 :root {
   --radius: 0.75rem;
 
-  /* Mesh dark palette */
-  --background: oklch(0.18 0 0);          /* #1a1a1a */
-  --foreground: oklch(0.96 0 0);          /* #F3F3F3 */
-  --surface: oklch(0.22 0 0);             /* slightly elevated card */
+  --background: oklch(0.97 0 0);          /* #f3f3f3 */
+  --foreground: oklch(0.20 0 0);
+  --surface: oklch(1 0 0);
+  --surface-elevated: oklch(0.99 0 0);
+
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface-elevated);
+  --popover-foreground: var(--foreground);
+
+  --primary: oklch(0.78 0.18 165);
+  --primary-foreground: oklch(0.18 0 0);
+
+  --secondary: oklch(0.93 0 0);
+  --secondary-foreground: var(--foreground);
+
+  --muted: oklch(0.94 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+
+  --accent: oklch(0.78 0.18 165);
+  --accent-foreground: oklch(0.18 0 0);
+
+  --trust: oklch(0.75 0.16 88);
+
+  --destructive: oklch(0.60 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.88 0 0);
+  --input: oklch(0.94 0 0);
+  --ring: oklch(0.78 0.18 165);
+}
+
+/* Dark theme */
+.dark {
+  --background: oklch(0.18 0 0);
+  --foreground: oklch(0.96 0 0);
+  --surface: oklch(0.22 0 0);
   --surface-elevated: oklch(0.26 0 0);
 
   --card: var(--surface);
@@ -49,7 +83,7 @@
   --popover: var(--surface-elevated);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.88 0.20 165);        /* #00FFA3 mint */
+  --primary: oklch(0.88 0.20 165);
   --primary-foreground: oklch(0.18 0 0);
 
   --secondary: oklch(0.28 0 0);
@@ -82,12 +116,17 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif,
+      "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla";
     -webkit-font-smoothing: antialiased;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-x: none;
   }
   .font-mesh { font-family: "Sarina", cursive; font-weight: 400; }
+  .emoji-font {
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+      "Twemoji Mozilla", "EmojiOne Color", "Android Emoji", sans-serif;
+  }
   .seven-point-star {
     clip-path: polygon(50% 0%, 59% 31%, 88% 13%, 70% 42%, 100% 50%, 70% 58%, 88% 87%, 59% 69%, 50% 100%, 41% 69%, 12% 87%, 30% 58%, 0% 50%, 30% 42%, 12% 13%, 41% 31%);
     display: inline-block;
