@@ -238,6 +238,29 @@ function SettingsPage() {
           />
         </label>
 
+        <Field label={t("settings.theme") || "Tema"}>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setTheme("dark")}
+              className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm ${
+                theme === "dark" ? "border-primary bg-primary/10 text-primary" : "border-border bg-input"
+              }`}
+            >
+              <Moon className="h-4 w-4" /> {t("settings.themeDark") || "Escuro"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme("light")}
+              className={`flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm ${
+                theme === "light" ? "border-primary bg-primary/10 text-primary" : "border-border bg-input"
+              }`}
+            >
+              <Sun className="h-4 w-4" /> {t("settings.themeLight") || "Claro"}
+            </button>
+          </div>
+        </Field>
+
         <Field label={t("settings.language")}>
           <button
             type="button"
