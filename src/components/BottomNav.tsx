@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Flame, Search, MessageCircle, User, Bell, Pencil, Bookmark, Settings } from "lucide-react";
+import { Flame, Search, MessageCircle, User, Bell, Pencil, Bookmark } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { MeshWord } from "@/components/Logo";
 import { useUnreadCounts } from "@/lib/use-unread";
