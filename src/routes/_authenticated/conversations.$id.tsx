@@ -442,7 +442,7 @@ function ChatPage() {
                     )}
                     {m.reply_to && <ReplyPreview message={messages.find((x) => x.id === m.reply_to)} profiles={profiles} mine={mine} />}
                     {m.media_type === "image" && m.media_url && <MediaImg path={m.media_url} onOpen={setLightbox} />}
-                    {m.content && <div className="whitespace-pre-wrap break-words">{m.content}</div>}
+                    {m.content && <div className="whitespace-pre-wrap break-words"><MessageText text={m.content} mine={mine} /></div>}
                     <div className={`mt-1 text-[10px] ${mine ? "text-[#1a1a1a]/60" : "text-muted-foreground"} text-right`}>
                       {d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </div>
@@ -551,5 +551,44 @@ function ReplyPreview({ message, profiles, mine }: { message?: Msg; profiles: Re
       <div className="font-medium opacity-80">{profiles[message.sender_id]?.nickname ?? "Mesh"}</div>
       <div className="line-clamp-2 opacity-70">{message.content || "📷"}</div>
     </div>
+  );
+}
+
+const URL_RE = /(https?:\/\/[^\s]+)/g;
+
+function MessageText({ text, mine }: { text: string; mine: boolean }) {
+  const parts = text.split(URL_RE);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (!URL_RE.test(part)) {
+          URL_RE.lastIndex = 0;
+          return <span key={i}>{part}</span>;
+        }
+        URL_RE.lastIndex = 0;
+        // Internal Mesh link (post or user) → in-app Link
+        if (origin && part.startsWith(origin)) {
+          const path = part.slice(origin.length) || "/";
+          const cls = `underline break-all ${mine ? "text-[#1a1a1a]" : "text-primary"}`;
+          return (
+            <Link key={i} to={path} className={cls}>
+              {part}
+            </Link>
+          );
+        }
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`underline break-all ${mine ? "text-[#1a1a1a]" : "text-primary"}`}
+          >
+            {part}
+          </a>
+        );
+      })}
+    </>
   );
 }
