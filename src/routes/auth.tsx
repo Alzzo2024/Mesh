@@ -15,6 +15,7 @@ function AuthPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -37,7 +38,21 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Conta criada!");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        // Resolve identifier (email, @username, #ID) → email
+        const raw = identifier.trim();
+        let loginEmail = raw;
+        if (!raw.includes("@") || raw.startsWith("@") || raw.startsWith("#")) {
+          const { data, error } = await supabase.rpc("resolve_login_email", {
+            _identifier: raw,
+          });
+          if (error) throw error;
+          if (!data) throw new Error(t("auth.userNotFound"));
+          loginEmail = data as string;
+        }
+        const { error } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password,
+        });
         if (error) throw error;
       }
       navigate({ to: "/feed" });
@@ -68,15 +83,27 @@ function AuthPage() {
               className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           )}
-          <input
-            type="email"
-            placeholder={t("auth.email")}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-            className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+          {mode === "signup" ? (
+            <input
+              type="email"
+              placeholder={t("auth.email")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          ) : (
+            <input
+              type="text"
+              placeholder={t("auth.identifier")}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+              autoComplete="username"
+              className="w-full rounded-xl bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          )}
           <div className="relative">
             <input
               type={showPass ? "text" : "password"}

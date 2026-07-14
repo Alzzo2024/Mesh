@@ -21,7 +21,7 @@ function AuthedLayout() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto flex w-full max-w-[1200px] items-start">
+      <div className="mx-auto flex w-full max-w-[1400px] items-start">
         <BottomNav />
         <main className="flex-1 min-w-0 border-x border-border pb-20 md:pb-0 min-h-screen">
           <Outlet />

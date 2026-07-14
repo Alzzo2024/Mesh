@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X, Pin, Share2, Link2, Repeat2, Bookmark } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { Heart, MessageCircle, ThumbsDown, Send, Trash2, MoreHorizontal, Pencil, X, Pin, Share2, Link2, Repeat2, Bookmark, Languages } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { Avatar } from "@/components/Avatar";
@@ -9,6 +10,7 @@ import { extractHashtags } from "@/lib/hashtags";
 import { TrustBadge } from "@/components/TrustBadge";
 import { ImageLightbox } from "@/components/ImageLightbox";
 import { EmojiPicker } from "@/components/EmojiPicker";
+import { translateText } from "@/lib/ai.functions";
 import { toast } from "sonner";
 
 export type FeedProfile = {
@@ -119,7 +121,23 @@ export function PostCard({
   onReact?: (p: FeedPost, r: "like" | "dislike") => void;
   onDeleted?: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const doTranslate = useServerFn(translateText);
+  const [translated, setTranslated] = useState<string | null>(null);
+  const [translating, setTranslating] = useState(false);
+  async function onTranslate() {
+    if (translated) { setTranslated(null); return; }
+    setTranslating(true);
+    try {
+      const target = (locale as string)?.split("-")[0] ?? "en";
+      const r = await doTranslate({ data: { text: post.content, targetLang: target } });
+      setTranslated(r.text);
+    } catch (e: any) {
+      toast.error(e?.message ?? "—");
+    } finally {
+      setTranslating(false);
+    }
+  }
   const [open, setOpen] = useState(false);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [text, setText] = useState("");
@@ -511,12 +529,23 @@ export function PostCard({
             </div>
           ) : (
             <p className="mt-1 whitespace-pre-wrap break-words">
-              <ContentText text={post.content} />
+              <ContentText text={translated ?? post.content} />
             </p>
           )}
-          <Link to="/post/$id" params={{ id: post.id }} className="mt-1 inline-block text-xs text-muted-foreground hover:text-primary">
-            {new Date(post.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(post.created_at).toLocaleDateString()}
-          </Link>
+          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+            <Link to="/post/$id" params={{ id: post.id }} className="hover:text-primary">
+              {new Date(post.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(post.created_at).toLocaleDateString()}
+            </Link>
+            <span>·</span>
+            <button
+              onClick={onTranslate}
+              disabled={translating}
+              className="inline-flex items-center gap-1 hover:text-primary disabled:opacity-50"
+            >
+              <Languages className="h-3 w-3" />
+              {translating ? "…" : translated ? t("feed.showOriginal") : t("feed.translate")}
+            </button>
+          </div>
           {post.image_path && (
             <button type="button" onClick={openLightbox} className="mt-3 block w-full">
               <SignedImage

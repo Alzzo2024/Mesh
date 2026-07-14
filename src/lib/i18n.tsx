@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 
 export type Locale = "pt-PT" | "pt-BR" | "es-ES" | "fr-FR" | "fr-CA" | "de-DE" | "it-IT" | "en-GB" | "en-US";
 
-export const APP_VERSION = "V.2.1.1";
+export const APP_VERSION = "V.2.2.0";
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
   { code: "pt-PT", label: "Português", flag: "🇵🇹" },
@@ -37,6 +37,10 @@ const ptPT: Dict = {
   "auth.toggle.toSignup": "Não tens conta? Criar uma",
   "auth.toggle.toSignin": "Já tens conta? Entrar",
   "auth.welcome": "Bem-vindo ao",
+  "auth.identifier": "Email, @nome ou #ID",
+  "auth.userNotFound": "Utilizador não encontrado",
+  "feed.translate": "Traduzir",
+  "feed.showOriginal": "Ver original",
   "feed.placeholder": "O que se passa?",
   "feed.post": "Publicar",
   "feed.empty": "Ainda não há publicações. Sê o primeiro!",

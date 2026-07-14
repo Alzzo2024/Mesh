@@ -15,6 +15,7 @@ type ConvRow = {
   id: string;
   type: "direct" | "group";
   name: string | null;
+  avatar_url: string | null;
   other?: { id: string; nickname: string; fixed_id: string; avatar_url: string | null };
   lastMessage?: string;
   lastAt?: string;
@@ -60,7 +61,7 @@ function ConvList() {
     if (ids.length > 0) {
       const { data: cs } = await supabase
         .from("conversations")
-        .select("id, type, name")
+        .select("id, type, name, avatar_url")
         .in("id", ids);
       const { data: allMembers } = await supabase
         .from("conversation_members")
@@ -92,6 +93,7 @@ function ConvList() {
           id: c.id,
           type: c.type as any,
           name: c.name,
+          avatar_url: (c as any).avatar_url ?? null,
           other: c.type === "direct" && others[0] ? (pmap.get(others[0].user_id) as any) : undefined,
           lastMessage: lastMsg?.content ?? "",
           lastAt: lastMsg?.created_at,
@@ -325,7 +327,7 @@ function ConvList() {
                 className="flex items-center gap-3 px-4 py-3 pr-14 border-b border-border hover:bg-secondary/40"
               >
                 <Avatar
-                  url={c.type === "direct" ? c.other?.avatar_url : null}
+                  url={c.type === "direct" ? c.other?.avatar_url : c.avatar_url}
                   name={c.type === "direct" ? c.other?.nickname : c.name}
                   className={c.type === "group" ? "!rounded-lg" : ""}
                 />

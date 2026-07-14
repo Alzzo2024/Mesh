@@ -545,6 +545,7 @@ export type Database = {
         Returns: boolean
       }
       mark_conversation_read: { Args: { _conv: string }; Returns: undefined }
+      resolve_login_email: { Args: { _identifier: string }; Returns: string }
       update_conversation_meta: {
         Args: { _avatar: string; _conv: string; _name: string }
         Returns: undefined
