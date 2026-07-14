@@ -529,12 +529,23 @@ export function PostCard({
             </div>
           ) : (
             <p className="mt-1 whitespace-pre-wrap break-words">
-              <ContentText text={post.content} />
+              <ContentText text={translated ?? post.content} />
             </p>
           )}
-          <Link to="/post/$id" params={{ id: post.id }} className="mt-1 inline-block text-xs text-muted-foreground hover:text-primary">
-            {new Date(post.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(post.created_at).toLocaleDateString()}
-          </Link>
+          <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+            <Link to="/post/$id" params={{ id: post.id }} className="hover:text-primary">
+              {new Date(post.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(post.created_at).toLocaleDateString()}
+            </Link>
+            <span>·</span>
+            <button
+              onClick={onTranslate}
+              disabled={translating}
+              className="inline-flex items-center gap-1 hover:text-primary disabled:opacity-50"
+            >
+              <Languages className="h-3 w-3" />
+              {translating ? "…" : translated ? t("feed.showOriginal") : t("feed.translate")}
+            </button>
+          </div>
           {post.image_path && (
             <button type="button" onClick={openLightbox} className="mt-3 block w-full">
               <SignedImage
